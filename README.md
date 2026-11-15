@@ -3,7 +3,7 @@
 Hacking minigame suite for the server: NUI minigames that other scripts start, with results the server checks
 before it trusts them, and a staff viewer for testing every game.
 
-**Version 1.5.0**
+**Version 1.5.1**
 
 ## Requirements
 
@@ -15,7 +15,7 @@ before it trusts them, and a staff viewer for testing every game.
 
 1. Put the folder in `resources` as `nxt-minigames`.
 2. `ensure nxt-minigames` after `ensure ox_lib`.
-3. On start the server prints `[nxt-minigames] v1.5.0 started — 21 minigames enabled`. A different version
+3. On start the server prints `[nxt-minigames] v1.5.1 started — 21 minigames enabled`. A different version
    there means a stale copy.
 
 No SQL and no items.
@@ -48,6 +48,7 @@ use is in `server/config.lua`, which no client receives.
 | server export | `adminOpenViewer(staffSrc)` | Called by nxt-admin only (its "Open editor" button). |
 | client export | `Start(id, difficulty, opts?)` | Client-started session, for things with no reward. Returns a boolean. |
 | client export | `IsOpen()` | A minigame or the viewer is on screen. |
+| client export | `Stop()` | Ends the minigame on screen as a fail. Returns `true` if one was running. |
 | server event (local) | `nxt-minigames:server:result` | `(src, { id, difficulty, ok, reason, ms, origin })` after every session. |
 | net events | `nxt-minigames:client:play`, `nxt-minigames:client:viewer` | Internal: server to client. |
 | callbacks | `nxt-minigames:cb:request`, `nxt-minigames:cb:report`, `nxt-minigames:cb:cipher` | Internal: client to server. |

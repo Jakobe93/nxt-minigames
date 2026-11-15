@@ -82,3 +82,15 @@ exports('Start', function(id, difficulty, opts)
 end)
 
 exports('IsOpen', function() return current ~= nil or viewerOpen end)
+
+--- Ends the minigame on screen as a fail (a bridge's stop, an interrupted job).
+exports('Stop', function()
+    local s = current
+
+    if not s then return false end
+
+    lib.callback.await('nxt-minigames:cb:report', false, s.token, false, 'stopped')
+    finish(s, false)
+
+    return true
+end)
