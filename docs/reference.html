@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>nxt-minigames — developer reference</title>
+<style>
+@font-face{font-family:Rajdhani;src:url('../web/fonts/rajdhani-latin-500-normal.woff2') format('woff2');font-weight:500}
+@font-face{font-family:Rajdhani;src:url('../web/fonts/rajdhani-latin-700-normal.woff2') format('woff2');font-weight:700}
+body{margin:0;background:#12131B;color:#D9DEE8;font:500 17px/1.5 Rajdhani,system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:40px 28px 80px}
+h1{font-size:38px;margin:0 0 4px;color:#fff;letter-spacing:.04em} h2{font-size:24px;color:#34c9e8;margin:40px 0 10px;letter-spacing:.04em}
+h3{font-size:19px;color:#fff;margin:24px 0 6px}
+p.sub{color:#8A90A6;margin:0 0 28px}
+code{background:#1F2230;padding:1px 6px;border-radius:4px;font-family:Consolas,monospace;font-size:14px;color:#E8ECF3}
+pre{background:#0E0F15;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:14px 16px;overflow-x:auto;font:14px/1.5 Consolas,monospace;color:#CFD6E4}
+table{width:100%;border-collapse:collapse;font-size:16px;margin:8px 0}
+th{text-align:left;color:#8A90A6;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.12);padding:6px 8px}
+td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:top}
+.warn{border-left:3px solid #f5a524;background:rgba(245,165,36,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
+.ok{border-left:3px solid #34c98a;background:rgba(52,201,138,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
+</style></head><body><main>
+<h1>nxt-minigames</h1>
+<p class="sub">v1.2.1 · 13 hacking minigames · terminal & nxt themes · server-verified sessions · admin viewer</p>
+
+<h2>Changelog</h2>
+<ul><li><b>1.2.1</b>: <b>Hotfix.</b> Patch Panel at D9–10 could freeze the NUI (about 15% of boards). The lookalike-label generator could only reach 7 distinct labels when every character had a confusable partner, and it needs 8. Added a random-character fallback and a hard iteration cap. Verified with 0 livelocks across 140,000 generated boards.</li>
+<li><b>1.2.0</b>: New terminal theme (green phosphor, JetBrains Mono, scanlines, <code>NXT-NET //</code> header, live state word, TTL/uptime clock), now the default through <code>Config.Theme</code>. The admin viewer can switch themes live. Firewall Run gets new art in both themes: pixel rule blocks in open lanes, a square packet, an uptime bar, a route prompt and progress ticks. Lanes default to 4–6 and spacing to 220–150.</li>
+<li><b>1.1.0</b>: Firewall Run gains strikes. Clipping a rule block costs a strike instead of ending the run. New <code>strikes</code> tunable (hits allowed, default 3 at D1 to 1 at D10) replaces the old D1–3 shield. A clipped layer doesn't count toward the goal.</li>
+<li><b>1.0.0</b>: initial release.</li></ul>
+<h2>Install</h2>
+<pre>ensure ox_lib
+ensure nxt-minigames</pre>
+<p>On start the server prints <code>[nxt-minigames] v1.2.1 started — 13 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
+
+<h2>Which export to use</h2>
+<div class="ok"><b>Anything that grants items, money, access or progress → server <code>Run</code>.</b> The server opens the session, and the result is decided server-side. Your resource never takes the client's word for it.</div>
+<p>Client <code>Start</code> is for things with no payoff: flavour, practice, or a door animation where the server re-checks separately. A client-side <code>true</code> must never be forwarded to the server as proof.</p>
+
+<h3>Server</h3>
+<pre>-- Yields until the player finishes. ok: boolean, info: { reason?, ms? }
+local ok, info = exports['nxt-minigames']:Run(source, 'keymatrix', 6)
+if ok then
+    exports.ox_inventory:AddItem(source, 'usb_decrypted', 1)
+end
+
+-- Non-yielding
+exports['nxt-minigames']:RunAsync(source, 'cipher', 4, function(ok, info) end)
+
+exports['nxt-minigames']:IsBusy(source)   -- true while a session is open
+exports['nxt-minigames']:GetGames()       -- { { id, label }, ... } enabled only</pre>
+
+<h3>Client</h3>
+<pre>local ok = exports['nxt-minigames']:Start('signal', 3)   -- yields; call from a thread
+exports['nxt-minigames']:IsOpen()                         -- minigame or viewer on screen</pre>
+
+<h3>Fail reasons (<code>info.reason</code>)</h3>
+<table><tr><th>Reason</th><th>Meaning</th></tr>
+<tr><td><code>unknown_game</code></td><td>Id not in config or disabled</td></tr>
+<tr><td><code>bad_difficulty</code></td><td>Not a number. Numbers are clamped to 1–10.</td></tr>
+<tr><td><code>busy</code></td><td>Player already has an open session</td></tr>
+<tr><td><code>no_player</code></td><td>Source isn't connected</td></tr>
+<tr><td><code>too_fast</code></td><td>Pass reported under the game's <code>minSolveMs</code> floor. Logged as a warning.</td></tr>
+<tr><td><code>expired</code></td><td>Past <code>SessionTimeoutSec</code> without a report</td></tr>
+<tr><td><code>dropped</code> / <code>resource_stop</code></td><td>Player left, or resource restarted mid-session</td></tr>
+<tr><td>anything else</td><td>The game's own fail text (e.g. <code>Aborted</code>, <code>Time expired</code>)</td></tr></table>
+
+<h2>Result hook</h2>
+<p>Every closed session fires a <b>server-local</b> event. It isn't a net event, so clients can't fake it. Use it for logs, dispatch or analytics.</p>
+<pre>AddEventHandler('nxt-minigames:server:result', function(src, r)
+    -- r = { id, difficulty, ok, reason, ms, origin = 'server' | 'client' }
+end)</pre>
+
+<h2>Game ids</h2>
+<table><tr><th>Id</th><th>Name</th><th>Tunables (config.lua)</th></tr>
+<tr><td><code>cipher</code></td><td>Cipher Lock</td><td>length, symbols, tries, time</td></tr>
+<tr><td><code>handshake</code></td><td>Handshake Sync</td><td>hits, faults, windowDeg, outerSpeed, innerSpeed, jitter, time</td></tr>
+<tr><td><code>traceroute</code></td><td>Traceroute</td><td>grid, hops, flashMs, time (+hops)</td></tr>
+<tr><td><code>packet</code></td><td>Packet Audit</td><td>rules, packets, packetMs, errors</td></tr>
+<tr><td><code>portsweep</code></td><td>Port Sweep</td><td>grid, density, time</td></tr>
+<tr><td><code>patch</code></td><td>Patch Panel</td><td>pairs, faults, time</td></tr>
+<tr><td><code>firewall</code></td><td>Firewall Run</td><td>lanes (4–6), layers, strikes, speed, spacing</td></tr>
+<tr><td><code>keymatrix</code></td><td>Key Matrix</td><td>grid, sequence, slack, codes (≤ 6), time</td></tr>
+<tr><td><code>keyderiv</code></td><td>Key Derivation</td><td>ops, time</td></tr>
+<tr><td><code>carrier</code></td><td>Carrier Tune</td><td>rounds, tolerance, noise, time</td></tr>
+<tr><td><code>memdiff</code></td><td>Memory Diff</td><td>cols, rows, diffs, errors, time</td></tr>
+<tr><td><code>intercept</code></td><td>Intercept</td><td>targets, errors, speed, spawnSec</td></tr>
+<tr><td><code>signal</code></td><td>Signal Path</td><td>grid, time</td></tr></table>
+<p>Every tunable is <code>{ value at D1, value at D10 }</code> and is linearly interpolated. Rule-style switches (hidden output on Key Derivation D7+, lookalike decoys on Intercept D6+, and so on) are fixed in the game code.</p>
+
+<h2>Themes</h2>
+<p><code>Config.Theme = 'terminal'</code> (default) or <code>'nxt'</code>. The theme is sent with every play and viewer message, so changing it takes a resource restart, not a client rebuild.</p>
+<p>Adding a theme: add a palette to <code>THEMES</code> in <code>web/js/core.js</code> (canvas colours, font, cable colours, overlay copy) and a <code>body[data-theme=name]</code> block in <code>style.css</code> that overrides the CSS variables. Canvas games read the palette at draw time and DOM games read the CSS variables, so no game file needs touching.</p>
+<p>Fonts are self-hosted. JetBrains Mono is a custom subset (Latin plus arrows ← ↑ → ↓ and typographic punctuation) built from the official release with <code>pyftsubset</code>, because the stock Latin subset lacks ← and →.</p>
+<h2>Admin viewer</h2>
+<p><code>/minigames</code>, restricted to <code>group.admin</code> through ox_lib. It opens every enabled game with the difficulty picker and a results log, using the live config tuning. Viewer runs never open a session, so they can't satisfy <code>Run</code> or <code>Start</code>. Esc or the close button exits.</p>
+<p>Opening <code>web/index.html</code> in a normal browser boots straight into the viewer, which is handy for UI work without a server.</p>
+
+<h2>Security model</h2>
+<ul>
+<li>Tokens are one-shot, bound to the player's server id, and expire server-side.</li>
+<li>One session per player. Client-started sessions are rate-limited (<code>ClientStartCooldownMs</code>).</li>
+<li>A pass faster than <code>minSolveMs</code> is rejected. The timer starts at issue, so intro time only makes the floor more lenient.</li>
+<li><code>nui_callback_strict_mode</code> is on.</li>
+</ul>
+<div class="warn"><b>Known limit:</b> the puzzles are generated and checked in the NUI. A modified client that waits out the floor and then reports a pass will still get through. Floors, one-shot tokens and rate limits stop event injection and scripted spam. They don't stop a determined cheater. The fix is server-generated seeds, with the server checking the actual solution for the deterministic games (Cipher Lock, Key Matrix, Key Derivation, Signal Path, Memory Diff, Patch Panel). That's scoped as a follow-up stage, not built.</div>
+
+<h2>Open [VERIFY] items</h2>
+<ul>
+<li>All <code>minSolveMs</code> floors are estimates from headless play. Watch for <code>too_fast</code> warnings on legit players and loosen those games.</li>
+<li>All difficulty curves are first-pass. D9–10 on Cipher Lock, Key Derivation and Packet Audit need real play-testing.</li>
+<li>Terminal theme on all 13 games has only been reviewed in headless Chromium, not in-game. Play a round of each in CEF before going live.</li>
+<li>In-CEF behaviour of Esc and right-click (Port Sweep flags, Signal Path rotate-back) is untested outside Chromium.</li>
+</ul>
+</main></body></html>

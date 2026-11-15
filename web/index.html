@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>nxt-minigames</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<aside class="dev">
+  <div class="dev-top">
+    <span class="dev-tag">Admin viewer · test runs only</span>
+    <button class="dev-x" id="devClose" title="Close (Esc)"><svg viewBox="0 0 14 14"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="dev-h">Theme</div>
+  <div class="dev-theme" id="devTheme"></div>
+  <div class="dev-h">Minigame</div>
+  <div class="dev-games" id="devGames"></div>
+  <p class="dev-desc" id="devDesc"></p>
+  <div class="dev-h">Difficulty</div>
+  <div class="dev-diff" id="devDiff"></div>
+  <p class="dev-note">1 = easy · 10 = hardest</p>
+  <button class="btn pri dev-run" id="devRun">Load minigame</button>
+  <div class="dev-h">Results</div>
+  <ol class="dev-log" id="devLog"></ol>
+</aside>
+<main class="stage">
+  <div class="mg-wrap">
+    <section class="mg" id="mg">
+      <header class="mg-head">
+        <div class="mg-title"><span class="mg-pre">NXT-NET // </span><span id="mgTitle">—</span></div>
+        <div class="mg-pips" id="mgPips"></div>
+        <div class="mg-status" id="mgStatus"></div>
+        <div class="mg-state" id="mgState">Standby</div>
+      </header>
+      <div class="mg-timer"><i id="mgTimer"></i></div>
+      <div class="mg-body" id="mgBody"></div>
+      <footer class="mg-foot"><span><span id="mgFoot"></span><span class="mg-disc">[ESC] disconnect</span></span><span class="mg-esc">Esc to abort</span><span class="mg-clock" id="mgClock"></span></footer>
+      <div class="mg-over" id="mgOver"></div>
+    </section>
+  </div>
+</main>
+<script src="js/core.js"></script>
+<script src="js/games/01_cipher.js"></script>
+<script src="js/games/02_handshake.js"></script>
+<script src="js/games/03_traceroute.js"></script>
+<script src="js/games/04_packet.js"></script>
+<script src="js/games/05_portsweep.js"></script>
+<script src="js/games/06_patch.js"></script>
+<script src="js/games/07_firewall.js"></script>
+<script src="js/games/08_keymatrix.js"></script>
+<script src="js/games/09_keyderiv.js"></script>
+<script src="js/games/10_carrier.js"></script>
+<script src="js/games/11_memdiff.js"></script>
+<script src="js/games/12_intercept.js"></script>
+<script src="js/games/13_signal.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>

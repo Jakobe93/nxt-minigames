@@ -1,0 +1,38 @@
+{
+  "resource": "nxt-minigames",
+  "version": "1.2.1",
+  "aliases": [],
+  "dependencies": [
+    "ox_lib"
+  ],
+  "provides": {
+    "exports": {
+      "client": [
+        "IsOpen",
+        "Start"
+      ],
+      "server": [
+        "GetGames",
+        "IsBusy",
+        "Run",
+        "RunAsync"
+      ]
+    },
+    "dynamic_exports": false,
+    "events": [
+      "nxt-minigames:client:play",
+      "nxt-minigames:client:viewer"
+    ],
+    "callbacks": [
+      "nxt-minigames:cb:report",
+      "nxt-minigames:cb:request"
+    ]
+  },
+  "uses": {
+    "exports": {},
+    "events": [
+      "ox_lib:notify"
+    ],
+    "callbacks": []
+  }
+}
