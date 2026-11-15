@@ -80,21 +80,51 @@ lib.callback.register('nxt-minigames:cb:cipher', function(src, token, digits)
     return Store.guess(src, token, digits)
 end)
 
--- Admin viewer. ox_lib enforces the ACE restriction before this runs.
-lib.addCommand(Config.Viewer.command, {
-    help = 'Open the minigame viewer (test runs only)',
-    restricted = Config.Viewer.restricted,
-}, function(src)
-    if src <= 0 then return print('[nxt-minigames] the viewer is in-game only') end
-    if Store.active(src) then
-        return TriggerClientEvent('ox_lib:notify', src, { type = 'error', description = 'Finish your current minigame first' })
-    end
+--- Opens the staff viewer for a player. Shared by nxt-admin's "Open editor" and the console command.
+local function openViewer(src)
+    if GetPlayerPing(src) <= 0 then return false, 'Player not found.' end
+    if Store.active(src) then return false, 'Finish the current minigame first.' end
+
     TriggerClientEvent('nxt-minigames:client:viewer', src, viewerPayload())
+    return true
+end
+
+-- Staff viewer, reached from the admin menu (nxt-md CONVENTIONS.md, "Admin panels"). nxt-admin checks the
+-- session and the rank permission ("Open Minigames", module.nxt-minigames) and logs it before calling this.
+-- A client cannot call a server export, and viewer runs never touch the session store.
+exports('adminOpenViewer', function(staffSrc)
+    return openViewer(staffSrc)
 end)
+
+local function registerAdmin()
+    if GetResourceState('nxt-admin') ~= 'started' then return end
+
+    exports['nxt-admin']:registerModule({
+        id = 'nxt-minigames',
+        label = 'Minigames',
+        icon = 'puzzle-piece',
+        desc = 'Test every minigame at any difficulty and look',
+        editor = 'adminOpenViewer',
+    })
+end
+
+CreateThread(registerAdmin)
+
+AddEventHandler('onResourceStart', function(res)
+    if res == 'nxt-admin' then registerAdmin() end
+end)
+
+-- Way in when nxt-admin is down: server console only.
+RegisterCommand('minigames_viewer', function(source, args)
+    if source ~= 0 then return end
+
+    local ok, err = openViewer(tonumber(args[1]) or 0)
+
+    print(ok and '[nxt-minigames] viewer opened' or ('[nxt-minigames] ' .. tostring(err)))
+end, true)
 
 CreateThread(function()
     local n = 0
     for _, g in pairs(Config.Games) do if g.enabled then n = n + 1 end end
-    print(('^2[nxt-minigames] v%s started — %d minigames enabled, viewer: /%s (%s)^7')
-        :format(Config.Version, n, Config.Viewer.command, Config.Viewer.restricted))
+    print(('^2[nxt-minigames] v%s started — %d minigames enabled^7'):format(Config.Version, n))
 end)

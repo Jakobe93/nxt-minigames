@@ -3,18 +3,19 @@
 Hacking minigame suite for the server: NUI minigames that other scripts start, with results the server checks
 before it trusts them, and a staff viewer for testing every game.
 
-**Version 1.4.0**
+**Version 1.5.0**
 
 ## Requirements
 
 - `ox_lib`
 - Nothing else. Scripts that want a minigame call this resource's exports.
+- Optional: `nxt-admin` (the staff viewer is reached from its menu), `nxt-hud` (Reduce motion).
 
 ## Install
 
 1. Put the folder in `resources` as `nxt-minigames`.
 2. `ensure nxt-minigames` after `ensure ox_lib`.
-3. On start the server prints `[nxt-minigames] v1.4.0 started — 21 minigames enabled`. A different version
+3. On start the server prints `[nxt-minigames] v1.5.0 started — 21 minigames enabled`. A different version
    there means a stale copy.
 
 No SQL and no items.
@@ -30,7 +31,6 @@ use is in `server/config.lua`, which no client receives.
 
 - `Config.Theme`: the look when neither the calling script nor the game picks one: `'terminal'` (green
   phosphor, mono) or `'nxt'` (house style). `Config.Themes` lists every look a call may ask for.
-- `Config.Viewer`: the staff viewer command and the ACE group allowed to use it.
 - `Config.AllowClientStart`, `Config.ClientStartCooldownMs`: whether client scripts may start a session, and how
   often.
 - `Config.SessionTimeoutSec`: session expiry. `Config.FloorScale` multiplies every fastest-solve limit.
@@ -45,6 +45,7 @@ use is in `server/config.lua`, which no client receives.
 | server export | `RunAsync(src, id, difficulty, cb, opts?)` | The same without waiting; `cb(ok, info)`. |
 | server export | `IsBusy(src)` | `true` while the player has a session open. |
 | server export | `GetGames()` | `{ { id, label } }` for every enabled game. |
+| server export | `adminOpenViewer(staffSrc)` | Called by nxt-admin only (its "Open editor" button). |
 | client export | `Start(id, difficulty, opts?)` | Client-started session, for things with no reward. Returns a boolean. |
 | client export | `IsOpen()` | A minigame or the viewer is on screen. |
 | server event (local) | `nxt-minigames:server:result` | `(src, { id, difficulty, ok, reason, ms, origin })` after every session. |
@@ -58,6 +59,16 @@ Game ids: `cipher`, `handshake`, `traceroute`, `packet`, `portsweep`, `patch`, `
 
 Which look a session gets: the call's `opts.theme`, else the game's own look (Memory Diff terminal, Ping Ball
 arcade, each rhythm game its own), else `Config.Theme`.
+
+## Staff viewer
+
+Every game at any difficulty and look, with a results log. Viewer runs are practice: they never open a session,
+so they cannot satisfy `Run` or `Start`.
+
+- In game: admin menu > SCRIPTS > Minigames > Open editor. Who may open it is the rank permission
+  "Open Minigames" (`module.nxt-minigames`) in nxt-admin's rank editor. No chat command and no `add_ace` lines.
+- Server console, when nxt-admin is down: `minigames_viewer <player id>`.
+- Opening `web/index.html` in a normal browser also opens it, for UI work without a server.
 
 ## Anti-cheat
 
@@ -86,4 +97,5 @@ game rendered and played headless.
 - `[VERIFY]` none of the 1.3.0 layouts or the eight new games have been played in game; rhythm audio timing in
   the game's browser is untested (`Config.AudioOffsetMs` covers a late beat).
 - `[VERIFY]` Reduce motion read from nxt-hud's `isReduceMotion` export.
+- `[VERIFY]` the viewer opening from nxt-admin's "Open editor" (nxt-admin closes its own panel first).
 - `[VERIFY]` right mouse (Port Sweep flags, Signal Path) and Esc inside the game's browser.

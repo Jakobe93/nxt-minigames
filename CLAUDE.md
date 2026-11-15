@@ -30,7 +30,7 @@ If `nxt-md` cannot be attached, say so and work from the short rules below.
 ## This repo
 
 - Resource name in game: `nxt-minigames`
-- Version lives in `fxmanifest.lua` (currently `1.4.0`).
+- Version lives in `fxmanifest.lua` (currently `1.5.0`).
 - UI: `web/index.html`, plain HTML/CSS/JS with no build step.
 - Developer reference to keep current: `docs/reference.html`.
 

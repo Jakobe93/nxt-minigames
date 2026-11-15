@@ -16,10 +16,11 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 .ok{border-left:3px solid #34c98a;background:rgba(52,201,138,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
 </style></head><body><main>
 <h1>nxt-minigames</h1>
-<p class="sub">v1.4.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
+<p class="sub">v1.5.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
 
 <h2>Changelog</h2>
-<ul><li><b>1.4.0</b>: Server-only config: the fastest-solve limits, rate limits, session timeout, tuning and theme settings move to <code>server/config.lua</code>, which no client downloads; <code>config.lua</code> keeps only client-safe screen and audio settings. Cipher Lock is scored on the server (it makes and keeps the code). Impossible input fires <code>nxt:flag</code>.</li>
+<ul><li><b>1.5.0</b>: The staff viewer moves into the admin menu (nxt-md CONVENTIONS.md, "Admin panels"): admin menu &gt; SCRIPTS &gt; Minigames &gt; Open editor, given by the rank permission "Open Minigames" (<code>module.nxt-minigames</code>). <code>/minigames</code> and <code>Config.Viewer</code> are gone; the server console keeps <code>minigames_viewer &lt;player id&gt;</code>.</li>
+<li><b>1.4.0</b>: Server-only config: the fastest-solve limits, rate limits, session timeout, tuning and theme settings move to <code>server/config.lua</code>, which no client downloads; <code>config.lua</code> keeps only client-safe screen and audio settings. Cipher Lock is scored on the server (it makes and keeps the code). Impossible input fires <code>nxt:flag</code>.</li>
 <li><b>1.3.0</b>: The approved redesigns. Every game has its own layout (door keypad for Cipher Lock, Minesweeper cabinet for Port Sweep, radar for Handshake Sync, network map and console for Traceroute, capture view for Packet Audit, rack for Patch Panel, punch card for Key Matrix, DIP switches and seven-segment displays for Key Derivation, CRT and knobs for Carrier Tune, image compare with a decode strip for Memory Diff, spectrum waterfall for Intercept, PCB for Signal Path). Eight new games: Net Crawler, Ping Ball (pinball cabinet), Buffer Flush, and the rhythm set Clock Sync, Port Knock, Keyer, Echo and Beat Crawler on a shared beat clock with synthesised drums. Some games carry a look of their own; a calling script can force any look per call with <code>{ theme = '...' }</code>. The house look follows THEME.md (no cut corners, no cyan bar or glow on the panel). nxt-hud's Reduce motion switch is honoured. New <code>Config.Volume</code> and <code>Config.AudioOffsetMs</code> for the rhythm games.</li>
 <li><b>1.2.1</b>: <b>Hotfix.</b> Patch Panel at D9–10 could freeze the NUI (about 15% of boards). The lookalike-label generator could only reach 7 distinct labels when every character had a confusable partner, and it needs 8. Added a random-character fallback and a hard iteration cap. Verified with 0 livelocks across 140,000 generated boards.</li>
 <li><b>1.2.0</b>: New terminal theme (green phosphor, JetBrains Mono, scanlines, <code>NXT-NET //</code> header, live state word, TTL/uptime clock), now the default through <code>Config.Theme</code>. The admin viewer can switch themes live. Firewall Run gets new art in both themes: pixel rule blocks in open lanes, a square packet, an uptime bar, a route prompt and progress ticks. Lanes default to 4–6 and spacing to 220–150.</li>
@@ -28,7 +29,7 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 <h2>Install</h2>
 <pre>ensure ox_lib
 ensure nxt-minigames</pre>
-<p>On start the server prints <code>[nxt-minigames] v1.4.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
+<p>On start the server prints <code>[nxt-minigames] v1.5.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
 
 <h2>Which export to use</h2>
 <div class="ok"><b>Anything that grants items, money, access or progress → server <code>Run</code>.</b> The server opens the session, and the result is decided server-side. Your resource never takes the client's word for it.</div>
@@ -106,8 +107,8 @@ end)</pre>
 <p>Reduce motion: when nxt-hud's switch is on (<code>exports['nxt-hud']:isReduceMotion()</code>), shakes, tile flips, sparks, the club floor and other ambient flashing stop. Beat cues the rhythm games need to be played stay.</p>
 <p>Adding a theme: add a palette to <code>THEMES</code> in <code>web/js/core.js</code> (canvas colours, font, cable colours, overlay copy) and a <code>body[data-theme=name]</code> block in <code>style.css</code> that overrides the CSS variables. Canvas games read the palette at draw time and DOM games read the CSS variables, so no game file needs touching.</p>
 <p>Fonts are self-hosted. JetBrains Mono is a custom subset (Latin plus arrows ← ↑ → ↓ and typographic punctuation) built from the official release with <code>pyftsubset</code>, because the stock Latin subset lacks ← and →.</p>
-<h2>Admin viewer</h2>
-<p><code>/minigames</code>, restricted to <code>group.admin</code> through ox_lib. It opens every enabled game with the difficulty picker and a results log, using the live config tuning. Viewer runs never open a session, so they can't satisfy <code>Run</code> or <code>Start</code>. Esc or the close button exits.</p>
+<h2>Staff viewer</h2>
+<p>Admin menu &gt; SCRIPTS &gt; Minigames &gt; Open editor (nxt-admin). The rank permission is "Open Minigames" (<code>module.nxt-minigames</code>), turned on in nxt-admin's rank editor. nxt-admin checks the staff session and the permission, logs the opening, then calls this resource's <code>adminOpenViewer</code> export. Server console when nxt-admin is down: <code>minigames_viewer &lt;player id&gt;</code>. Viewer runs never open a session, so they can't satisfy <code>Run</code> or <code>Start</code>.</p>
 <p>Opening <code>web/index.html</code> in a normal browser boots straight into the viewer, which is handy for UI work without a server.</p>
 
 <h2>Security model</h2>

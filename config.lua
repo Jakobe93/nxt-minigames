@@ -2,7 +2,7 @@
 -- fastest-solve limits, rate limits, session timeouts) lives in server/config.lua.
 Config = {}
 
-Config.Version = '1.4.0'           -- printed on start; bump with every delivered build
+Config.Version = '1.5.0'           -- printed on start; bump with every delivered build
 
 -- Rhythm games: sound volume (0 to 1) and an audio offset in ms. If the beat sounds late
 -- against the picture in game, raise the offset (try 30 to 80).

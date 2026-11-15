@@ -45,7 +45,7 @@ RegisterNUICallback('result', function(data, cb)
     end)
 end)
 
--- Admin viewer. The server only sends this to ACE-permitted players; viewer
+-- Staff viewer. The server sends this only from nxt-admin (rank permission) or the console; viewer
 -- runs never talk to the session store, so opening it grants nothing.
 RegisterNetEvent('nxt-minigames:client:viewer', function(data)
     if current or type(data) ~= 'table' then return end

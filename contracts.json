@@ -1,6 +1,6 @@
 {
   "resource": "nxt-minigames",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "aliases": [],
   "dependencies": [
     "ox_lib"
@@ -15,7 +15,8 @@
         "GetGames",
         "IsBusy",
         "Run",
-        "RunAsync"
+        "RunAsync",
+        "adminOpenViewer"
       ]
     },
     "dynamic_exports": false,
@@ -31,13 +32,15 @@
   },
   "uses": {
     "exports": {
+      "nxt-admin": [
+        "registerModule"
+      ],
       "nxt-hud": [
         "isReduceMotion"
       ]
     },
     "events": [
-      "nxt:flag",
-      "ox_lib:notify"
+      "nxt:flag"
     ],
     "callbacks": []
   }

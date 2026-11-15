@@ -15,13 +15,6 @@ Config.Themes = {
     telegraph = true, sampler = true, arcade = true, club = true,
 }
 
--- Admin viewer: /minigames opens every game with a difficulty picker. Viewer runs are
--- local practice only; they never create a session and can't satisfy Run()/Start().
-Config.Viewer = {
-    command = 'minigames',
-    restricted = 'group.admin',    -- ox_lib ACE group
-}
-
 -- Sessions
 Config.AllowClientStart = true     -- lets client scripts call exports['nxt-minigames']:Start()
 Config.ClientStartCooldownMs = 1500
