@@ -24,8 +24,8 @@ local function curve(id, name, d, a, b, int)
 end
 
 --- Cipher Lock's code is made and kept here; the page only ever sees the colours of a guess.
-local function newCipher(d)
-    local len = curve('cipher', 'length', d, 4, 6, true)
+local function newCipher(d, length)
+    local len = length or curve('cipher', 'length', d, 4, 6, true)
     local dupes = d >= 6
     local pool = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }
     local code = {}
@@ -41,6 +41,36 @@ local function newCipher(d)
     end
 
     return { code = code, tries = curve('cipher', 'tries', d, 8, 5, true), used = 0 }
+end
+
+--- Colours a guess against a code, Wordle's rule for repeated digits.
+---@return string[] res 'hit' | 'near' | 'miss' per digit
+---@return integer hits
+local function score(code, digits)
+    local res, left, hits = {}, {}, 0
+
+    for i = 1, #code do
+        local g = digits:sub(i, i)
+
+        if g == code[i] then
+            res[i] = 'hit'
+            hits = hits + 1
+        else
+            res[i] = 'miss'
+            left[code[i]] = (left[code[i]] or 0) + 1
+        end
+    end
+
+    for i = 1, #code do
+        local g = digits:sub(i, i)
+
+        if res[i] ~= 'hit' and (left[g] or 0) > 0 then
+            res[i] = 'near'
+            left[g] = left[g] - 1
+        end
+    end
+
+    return res, hits
 end
 
 local function newToken()
@@ -174,28 +204,7 @@ local function guess(src, token, digits)
         return
     end
 
-    local res, left, hits = {}, {}, 0
-
-    for i = 1, #c.code do
-        local g = digits:sub(i, i)
-
-        if g == c.code[i] then
-            res[i] = 'hit'
-            hits = hits + 1
-        else
-            res[i] = 'miss'
-            left[c.code[i]] = (left[c.code[i]] or 0) + 1
-        end
-    end
-
-    for i = 1, #c.code do
-        local g = digits:sub(i, i)
-
-        if res[i] ~= 'hit' and (left[g] or 0) > 0 then
-            res[i] = 'near'
-            left[g] = left[g] - 1
-        end
-    end
+    local res, hits = score(c.code, digits)
 
     c.used = c.used + 1
     c.solved = hits == #c.code
@@ -232,6 +241,7 @@ end)
 
 SessionStore = {
     open = open, close = close, report = report, guess = guess, floorMs = floorMs, log = log, warn = warn,
+    newCipher = newCipher, score = score,
     clientStartAllowed = function(src)
         local now, last = GetGameTimer(), LastClientStart[src]
         if last and now - last < Config.ClientStartCooldownMs then return false end

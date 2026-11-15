@@ -16,10 +16,11 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 .ok{border-left:3px solid #34c98a;background:rgba(52,201,138,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
 </style></head><body><main>
 <h1>nxt-minigames</h1>
-<p class="sub">v1.5.1 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
+<p class="sub">v1.6.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
 
 <h2>Changelog</h2>
-<ul><li><b>1.5.1</b>: New client export <code>Stop()</code>: ends the game on screen as a fail, so a bridge or script can cancel it (prp-bridge <code>minigames.stop</code>).</li>
+<ul><li><b>1.6.0</b>: Server exports <code>CodeStart</code> and <code>CodeGuess</code>: Cipher Lock's code game for a keypad another resource draws, such as nxt-dui's <code>codepad</code> on <code>nxt_prop_keypad_01</code>. The code is made and kept here; the caller passes each guess through and gets the tile colours back.</li>
+<li><b>1.5.1</b>: New client export <code>Stop()</code>: ends the game on screen as a fail, so a bridge or script can cancel it (prp-bridge <code>minigames.stop</code>).</li>
 <li><b>1.5.0</b>: The staff viewer moves into the admin menu (nxt-md CONVENTIONS.md, "Admin panels"): admin menu &gt; SCRIPTS &gt; Minigames &gt; Open editor, given by the rank permission "Open Minigames" (<code>module.nxt-minigames</code>). <code>/minigames</code> and <code>Config.Viewer</code> are gone; the server console keeps <code>minigames_viewer &lt;player id&gt;</code>.</li>
 <li><b>1.4.0</b>: Server-only config: the fastest-solve limits, rate limits, session timeout, tuning and theme settings move to <code>server/config.lua</code>, which no client downloads; <code>config.lua</code> keeps only client-safe screen and audio settings. Cipher Lock is scored on the server (it makes and keeps the code). Impossible input fires <code>nxt:flag</code>.</li>
 <li><b>1.3.0</b>: The approved redesigns. Every game has its own layout (door keypad for Cipher Lock, Minesweeper cabinet for Port Sweep, radar for Handshake Sync, network map and console for Traceroute, capture view for Packet Audit, rack for Patch Panel, punch card for Key Matrix, DIP switches and seven-segment displays for Key Derivation, CRT and knobs for Carrier Tune, image compare with a decode strip for Memory Diff, spectrum waterfall for Intercept, PCB for Signal Path). Eight new games: Net Crawler, Ping Ball (pinball cabinet), Buffer Flush, and the rhythm set Clock Sync, Port Knock, Keyer, Echo and Beat Crawler on a shared beat clock with synthesised drums. Some games carry a look of their own; a calling script can force any look per call with <code>{ theme = '...' }</code>. The house look follows THEME.md (no cut corners, no cyan bar or glow on the panel). nxt-hud's Reduce motion switch is honoured. New <code>Config.Volume</code> and <code>Config.AudioOffsetMs</code> for the rhythm games.</li>
@@ -30,7 +31,7 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 <h2>Install</h2>
 <pre>ensure ox_lib
 ensure nxt-minigames</pre>
-<p>On start the server prints <code>[nxt-minigames] v1.5.1 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
+<p>On start the server prints <code>[nxt-minigames] v1.6.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
 
 <h2>Which export to use</h2>
 <div class="ok"><b>Anything that grants items, money, access or progress → server <code>Run</code>.</b> The server opens the session, and the result is decided server-side. Your resource never takes the client's word for it.</div>
@@ -50,6 +51,24 @@ exports['nxt-minigames']:RunAsync(source, 'cipher', 4, function(ok, info) end, {
 
 exports['nxt-minigames']:IsBusy(source)   -- true while a session is open
 exports['nxt-minigames']:GetGames()       -- { { id, label }, ... } enabled only</pre>
+
+<h3>Code game on a keypad prop (nxt-dui)</h3>
+<p>Cipher Lock's scoring for a keypad another resource draws. The code never leaves the server; the colours follow Wordle's rule for repeated digits.</p>
+<pre>-- server: make a code (difficulty 1-10, length = the keypad's tiles)
+local id, tries = exports['nxt-minigames']:CodeStart(source, 5, 4)
+
+-- server callback the keypad's onGuess calls
+local tiles, status = exports['nxt-minigames']:CodeGuess(source, id, guess)
+-- tiles 'gyxx' (g right place, y elsewhere, x not in it); status nil | 'cracked' | 'out'
+
+-- client
+NxtDui.codepad({
+    entity = keypad,
+    tries = tries,
+    onGuess = function(guess)
+        return lib.callback.await('my_res:guess', false, keypadId, guess)
+    end,
+})</pre>
 
 <h3>Client</h3>
 <pre>local ok = exports['nxt-minigames']:Start('signal', 3)   -- yields; call from a thread

@@ -5,7 +5,7 @@ lua54 'yes'
 name 'nxt-minigames'
 author 'Jakobe / nxt'
 description 'Hacking minigame suite: 13 NUI minigames, server-verified sessions, admin viewer'
-version '1.5.1'
+version '1.6.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
@@ -21,6 +21,7 @@ server_scripts {
     'server/config.lua',
     'server/sessions.lua',
     'server/main.lua',
+    'server/codes.lua',
 }
 
 ui_page 'web/index.html'

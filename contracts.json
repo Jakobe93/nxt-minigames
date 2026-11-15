@@ -1,6 +1,6 @@
 {
   "resource": "nxt-minigames",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "aliases": [],
   "dependencies": [
     "ox_lib"
@@ -13,6 +13,8 @@
         "Stop"
       ],
       "server": [
+        "CodeGuess",
+        "CodeStart",
         "GetGames",
         "IsBusy",
         "Run",

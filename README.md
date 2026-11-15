@@ -3,7 +3,7 @@
 Hacking minigame suite for the server: NUI minigames that other scripts start, with results the server checks
 before it trusts them, and a staff viewer for testing every game.
 
-**Version 1.5.1**
+**Version 1.6.0**
 
 ## Requirements
 
@@ -15,7 +15,7 @@ before it trusts them, and a staff viewer for testing every game.
 
 1. Put the folder in `resources` as `nxt-minigames`.
 2. `ensure nxt-minigames` after `ensure ox_lib`.
-3. On start the server prints `[nxt-minigames] v1.5.1 started — 21 minigames enabled`. A different version
+3. On start the server prints `[nxt-minigames] v1.6.0 started — 21 minigames enabled`. A different version
    there means a stale copy.
 
 No SQL and no items.
@@ -45,6 +45,8 @@ use is in `server/config.lua`, which no client receives.
 | server export | `RunAsync(src, id, difficulty, cb, opts?)` | The same without waiting; `cb(ok, info)`. |
 | server export | `IsBusy(src)` | `true` while the player has a session open. |
 | server export | `GetGames()` | `{ { id, label } }` for every enabled game. |
+| server export | `CodeStart(src, difficulty, length?)` | Cipher Lock's code game for a keypad another resource draws (nxt-dui `codepad`). Returns `id, tries`. Difficulty sets the tries and whether digits repeat (D6+); `length` defaults to Cipher Lock's. |
+| server export | `CodeGuess(src, id, guess)` | Scores a guess: `tiles, status`. `tiles` has a letter per digit (`g` right place, `y` elsewhere, `x` not in it); `status` is `nil`, `'cracked'` or `'out'`. A guess of the wrong length or for another player's code returns nothing. |
 | server export | `adminOpenViewer(staffSrc)` | Called by nxt-admin only (its "Open editor" button). |
 | client export | `Start(id, difficulty, opts?)` | Client-started session, for things with no reward. Returns a boolean. |
 | client export | `IsOpen()` | A minigame or the viewer is on screen. |
