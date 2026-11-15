@@ -10,7 +10,24 @@ local function payload(s)
         tuning = { [s.id] = g.tuning or {} },
         theme = Config.Theme,
         forceTheme = s.theme,
+        timeoutSec = Config.SessionTimeoutSec,
+        cipher = s.cipher and { length = #s.cipher.code, tries = s.cipher.tries } or nil,
     }
+end
+
+--- What the staff viewer needs: every enabled game's tuning. Built here because the tuning
+--- is server-only config.
+local function viewerPayload()
+    local tuning, enabled = {}, {}
+
+    for id, g in pairs(Config.Games) do
+        if g.enabled then
+            tuning[id] = g.tuning or {}
+            enabled[#enabled + 1] = id
+        end
+    end
+
+    return { tuning = tuning, enabled = enabled, theme = Config.Theme }
 end
 
 --- Yields until the player finishes. Returns ok:boolean, info:{ reason, ms }
@@ -59,6 +76,10 @@ lib.callback.register('nxt-minigames:cb:report', function(src, token, ok, reason
     return Store.report(src, token, ok, reason)
 end)
 
+lib.callback.register('nxt-minigames:cb:cipher', function(src, token, digits)
+    return Store.guess(src, token, digits)
+end)
+
 -- Admin viewer. ox_lib enforces the ACE restriction before this runs.
 lib.addCommand(Config.Viewer.command, {
     help = 'Open the minigame viewer (test runs only)',
@@ -68,7 +89,7 @@ lib.addCommand(Config.Viewer.command, {
     if Store.active(src) then
         return TriggerClientEvent('ox_lib:notify', src, { type = 'error', description = 'Finish your current minigame first' })
     end
-    TriggerClientEvent('nxt-minigames:client:viewer', src)
+    TriggerClientEvent('nxt-minigames:client:viewer', src, viewerPayload())
 end)
 
 CreateThread(function()

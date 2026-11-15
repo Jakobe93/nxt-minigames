@@ -168,6 +168,10 @@ function begin(g, d) {
   const curve = (n, a, b) => { const o = tune[n]; return Array.isArray(o) && o.length === 2 ? U.L(+o[0], +o[1], d) : U.L(a, b, d); };
   const api = {
     d,
+    // A game the server scores (Cipher Lock) gets its parameters from the server in play mode,
+    // and asks it through remote(); in the viewer both are null and the game runs on its own.
+    server: s.mode === 'play' ? NUI.server : null,
+    remote: (cb, data) => s.mode === 'play' && s.token ? post(cb, {...data, token: s.token}) : null,
     t: curve, ti: (n, a, b) => Math.round(curve(n, a, b)),
     get alive() { return s.alive; },
     status: html => { if (SESSION === s) $('#mgStatus').innerHTML = html; },
@@ -237,7 +241,7 @@ function hideAll() { clearTimeout(NUI.introTimer); end(SESSION); SESSION = null;
 
 function openPlay(m) {
   const g = findGame(m.id);
-  prefs(m); NUI.token = m.token; NUI.tuning = m.tuning || {}; BASE_THEME = THEMES[m.theme] ? m.theme : BASE_THEME; FORCE_THEME = m.forceTheme || null;
+  prefs(m); NUI.server = {cipher: m.cipher || null}; NUI.token = m.token; NUI.tuning = m.tuning || {}; BASE_THEME = THEMES[m.theme] ? m.theme : BASE_THEME; FORCE_THEME = m.forceTheme || null;
   show('play');
   if (!g) { post('result', {token: m.token, ok: false, reason: 'unknown_game'}); return; }
   intro(g, Math.max(1, Math.min(10, m.difficulty | 0)), m.introMs ?? 3500);

@@ -16,18 +16,6 @@ function Nui.close()
     Nui.focus(false)
 end
 
---- Enabled games' tuning tables plus the enabled id list, shaped for the viewer.
-function Nui.viewerPayload()
-    local tuning, enabled = {}, {}
-    for id, g in pairs(Config.Games) do
-        if g.enabled then
-            tuning[id] = g.tuning or {}
-            enabled[#enabled + 1] = id
-        end
-    end
-    return { tuning = tuning, enabled = enabled, theme = Config.Theme }
-end
-
 --- Player settings every screen needs: nxt-hud's Reduce motion switch, and rhythm audio.
 function Nui.withPrefs(data)
     data.reduceMotion = GetResourceState('nxt-hud') == 'started' and exports['nxt-hud']:isReduceMotion() == true

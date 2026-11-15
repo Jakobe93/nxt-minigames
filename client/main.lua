@@ -19,10 +19,11 @@ local function play(s)
         introMs = Config.IntroMs,
         theme = s.theme,
         forceTheme = s.forceTheme,
+        cipher = s.cipher,
     }))
     Nui.focus(true)
     -- Watchdog: if the NUI never reports (crash, broken page), release focus and fail.
-    SetTimeout(Config.SessionTimeoutSec * 1000 + 5000, function() finish(s, false) end)
+    SetTimeout((tonumber(s.timeoutSec) or 240) * 1000 + 5000, function() finish(s, false) end)
 end
 
 -- Server-initiated session (server export Run / RunAsync). The token is only
@@ -46,11 +47,20 @@ end)
 
 -- Admin viewer. The server only sends this to ACE-permitted players; viewer
 -- runs never talk to the session store, so opening it grants nothing.
-RegisterNetEvent('nxt-minigames:client:viewer', function()
-    if current then return end
+RegisterNetEvent('nxt-minigames:client:viewer', function(data)
+    if current or type(data) ~= 'table' then return end
     viewerOpen = true
-    Nui.send('viewer', Nui.withPrefs(Nui.viewerPayload()))
+    Nui.send('viewer', Nui.withPrefs(data))
     Nui.focus(true)
+end)
+
+-- Cipher Lock guesses are scored by the server, which holds the code.
+RegisterNUICallback('cipherGuess', function(data, cb)
+    local s = current
+
+    if not s or type(data) ~= 'table' or data.token ~= s.token then return cb({}) end
+
+    cb(lib.callback.await('nxt-minigames:cb:cipher', false, s.token, data.guess) or {})
 end)
 
 RegisterNUICallback('viewerClose', function(_, cb)

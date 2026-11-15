@@ -16,10 +16,11 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 .ok{border-left:3px solid #34c98a;background:rgba(52,201,138,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
 </style></head><body><main>
 <h1>nxt-minigames</h1>
-<p class="sub">v1.3.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
+<p class="sub">v1.4.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
 
 <h2>Changelog</h2>
-<ul><li><b>1.3.0</b>: The approved redesigns. Every game has its own layout (door keypad for Cipher Lock, Minesweeper cabinet for Port Sweep, radar for Handshake Sync, network map and console for Traceroute, capture view for Packet Audit, rack for Patch Panel, punch card for Key Matrix, DIP switches and seven-segment displays for Key Derivation, CRT and knobs for Carrier Tune, image compare with a decode strip for Memory Diff, spectrum waterfall for Intercept, PCB for Signal Path). Eight new games: Net Crawler, Ping Ball (pinball cabinet), Buffer Flush, and the rhythm set Clock Sync, Port Knock, Keyer, Echo and Beat Crawler on a shared beat clock with synthesised drums. Some games carry a look of their own; a calling script can force any look per call with <code>{ theme = '...' }</code>. The house look follows THEME.md (no cut corners, no cyan bar or glow on the panel). nxt-hud's Reduce motion switch is honoured. New <code>Config.Volume</code> and <code>Config.AudioOffsetMs</code> for the rhythm games.</li>
+<ul><li><b>1.4.0</b>: Server-only config: the fastest-solve limits, rate limits, session timeout, tuning and theme settings move to <code>server/config.lua</code>, which no client downloads; <code>config.lua</code> keeps only client-safe screen and audio settings. Cipher Lock is scored on the server (it makes and keeps the code). Impossible input fires <code>nxt:flag</code>.</li>
+<li><b>1.3.0</b>: The approved redesigns. Every game has its own layout (door keypad for Cipher Lock, Minesweeper cabinet for Port Sweep, radar for Handshake Sync, network map and console for Traceroute, capture view for Packet Audit, rack for Patch Panel, punch card for Key Matrix, DIP switches and seven-segment displays for Key Derivation, CRT and knobs for Carrier Tune, image compare with a decode strip for Memory Diff, spectrum waterfall for Intercept, PCB for Signal Path). Eight new games: Net Crawler, Ping Ball (pinball cabinet), Buffer Flush, and the rhythm set Clock Sync, Port Knock, Keyer, Echo and Beat Crawler on a shared beat clock with synthesised drums. Some games carry a look of their own; a calling script can force any look per call with <code>{ theme = '...' }</code>. The house look follows THEME.md (no cut corners, no cyan bar or glow on the panel). nxt-hud's Reduce motion switch is honoured. New <code>Config.Volume</code> and <code>Config.AudioOffsetMs</code> for the rhythm games.</li>
 <li><b>1.2.1</b>: <b>Hotfix.</b> Patch Panel at D9–10 could freeze the NUI (about 15% of boards). The lookalike-label generator could only reach 7 distinct labels when every character had a confusable partner, and it needs 8. Added a random-character fallback and a hard iteration cap. Verified with 0 livelocks across 140,000 generated boards.</li>
 <li><b>1.2.0</b>: New terminal theme (green phosphor, JetBrains Mono, scanlines, <code>NXT-NET //</code> header, live state word, TTL/uptime clock), now the default through <code>Config.Theme</code>. The admin viewer can switch themes live. Firewall Run gets new art in both themes: pixel rule blocks in open lanes, a square packet, an uptime bar, a route prompt and progress ticks. Lanes default to 4–6 and spacing to 220–150.</li>
 <li><b>1.1.0</b>: Firewall Run gains strikes. Clipping a rule block costs a strike instead of ending the run. New <code>strikes</code> tunable (hits allowed, default 3 at D1 to 1 at D10) replaces the old D1–3 shield. A clipped layer doesn't count toward the goal.</li>
@@ -27,7 +28,7 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 <h2>Install</h2>
 <pre>ensure ox_lib
 ensure nxt-minigames</pre>
-<p>On start the server prints <code>[nxt-minigames] v1.3.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
+<p>On start the server prints <code>[nxt-minigames] v1.4.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
 
 <h2>Which export to use</h2>
 <div class="ok"><b>Anything that grants items, money, access or progress → server <code>Run</code>.</b> The server opens the session, and the result is decided server-side. Your resource never takes the client's word for it.</div>
@@ -114,9 +115,12 @@ end)</pre>
 <li>Tokens are one-shot, bound to the player's server id, and expire server-side.</li>
 <li>One session per player. Client-started sessions are rate-limited (<code>ClientStartCooldownMs</code>).</li>
 <li>A pass faster than <code>minSolveMs</code> is rejected. The timer starts at issue, so intro time only makes the floor more lenient.</li>
+<li>Cipher Lock's code never reaches the client: each guess goes to <code>nxt-minigames:cb:cipher</code>, which answers the colours, and a pass is accepted only after the server scored the right code.</li>
+<li>Everything a cheater could use is in <code>server/config.lua</code>, never downloaded by a client.</li>
+<li>Impossible input fires the server-only local event <code>nxt:flag</code>: <code>minigames.foreign_token</code>, <code>minigames.too_fast</code> (under half the limit only), <code>minigames.cipher_unsolved</code>, <code>minigames.bad_guess</code>, <code>minigames.guess_wrong_game</code>.</li>
 <li><code>nui_callback_strict_mode</code> is on.</li>
 </ul>
-<div class="warn"><b>Known limit:</b> the puzzles are generated and checked in the NUI. A modified client that waits out the floor and then reports a pass will still get through. Floors, one-shot tokens and rate limits stop event injection and scripted spam. They don't stop a determined cheater. The fix is server-generated seeds, with the server checking the actual solution for the deterministic games (Cipher Lock, Key Matrix, Key Derivation, Signal Path, Memory Diff, Patch Panel). That's scoped as a follow-up stage, not built.</div>
+<div class="warn"><b>Known limit:</b> the puzzles are generated and checked in the NUI. A modified client that waits out the floor and then reports a pass will still get through. Floors, one-shot tokens and rate limits stop event injection and scripted spam. They don't stop a determined cheater. Cipher Lock is now checked on the server. The other deterministic games (Key Matrix, Key Derivation, Signal Path, Memory Diff, Patch Panel) can follow the same pattern; not built.</div>
 
 <h2>Open [VERIFY] items</h2>
 <ul>
