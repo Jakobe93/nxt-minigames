@@ -16,17 +16,18 @@ td{border-bottom:1px solid rgba(255,255,255,.06);padding:7px 8px;vertical-align:
 .ok{border-left:3px solid #34c98a;background:rgba(52,201,138,.08);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0}
 </style></head><body><main>
 <h1>nxt-minigames</h1>
-<p class="sub">v1.2.1 · 13 hacking minigames · terminal & nxt themes · server-verified sessions · admin viewer</p>
+<p class="sub">v1.3.0 · 21 minigames · per-game looks, per-call theme · server-verified sessions · admin viewer</p>
 
 <h2>Changelog</h2>
-<ul><li><b>1.2.1</b>: <b>Hotfix.</b> Patch Panel at D9–10 could freeze the NUI (about 15% of boards). The lookalike-label generator could only reach 7 distinct labels when every character had a confusable partner, and it needs 8. Added a random-character fallback and a hard iteration cap. Verified with 0 livelocks across 140,000 generated boards.</li>
+<ul><li><b>1.3.0</b>: The approved redesigns. Every game has its own layout (door keypad for Cipher Lock, Minesweeper cabinet for Port Sweep, radar for Handshake Sync, network map and console for Traceroute, capture view for Packet Audit, rack for Patch Panel, punch card for Key Matrix, DIP switches and seven-segment displays for Key Derivation, CRT and knobs for Carrier Tune, image compare with a decode strip for Memory Diff, spectrum waterfall for Intercept, PCB for Signal Path). Eight new games: Net Crawler, Ping Ball (pinball cabinet), Buffer Flush, and the rhythm set Clock Sync, Port Knock, Keyer, Echo and Beat Crawler on a shared beat clock with synthesised drums. Some games carry a look of their own; a calling script can force any look per call with <code>{ theme = '...' }</code>. The house look follows THEME.md (no cut corners, no cyan bar or glow on the panel). nxt-hud's Reduce motion switch is honoured. New <code>Config.Volume</code> and <code>Config.AudioOffsetMs</code> for the rhythm games.</li>
+<li><b>1.2.1</b>: <b>Hotfix.</b> Patch Panel at D9–10 could freeze the NUI (about 15% of boards). The lookalike-label generator could only reach 7 distinct labels when every character had a confusable partner, and it needs 8. Added a random-character fallback and a hard iteration cap. Verified with 0 livelocks across 140,000 generated boards.</li>
 <li><b>1.2.0</b>: New terminal theme (green phosphor, JetBrains Mono, scanlines, <code>NXT-NET //</code> header, live state word, TTL/uptime clock), now the default through <code>Config.Theme</code>. The admin viewer can switch themes live. Firewall Run gets new art in both themes: pixel rule blocks in open lanes, a square packet, an uptime bar, a route prompt and progress ticks. Lanes default to 4–6 and spacing to 220–150.</li>
 <li><b>1.1.0</b>: Firewall Run gains strikes. Clipping a rule block costs a strike instead of ending the run. New <code>strikes</code> tunable (hits allowed, default 3 at D1 to 1 at D10) replaces the old D1–3 shield. A clipped layer doesn't count toward the goal.</li>
 <li><b>1.0.0</b>: initial release.</li></ul>
 <h2>Install</h2>
 <pre>ensure ox_lib
 ensure nxt-minigames</pre>
-<p>On start the server prints <code>[nxt-minigames] v1.2.1 started — 13 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
+<p>On start the server prints <code>[nxt-minigames] v1.3.0 started — 21 minigames enabled</code>. If that version doesn't match the build you expect, you're running a stale copy.</p>
 
 <h2>Which export to use</h2>
 <div class="ok"><b>Anything that grants items, money, access or progress → server <code>Run</code>.</b> The server opens the session, and the result is decided server-side. Your resource never takes the client's word for it.</div>
@@ -35,18 +36,21 @@ ensure nxt-minigames</pre>
 <h3>Server</h3>
 <pre>-- Yields until the player finishes. ok: boolean, info: { reason?, ms? }
 local ok, info = exports['nxt-minigames']:Run(source, 'keymatrix', 6)
+-- optional fourth argument: options for this call only
+local ok2 = exports['nxt-minigames']:Run(source, 'crawler', 5, { theme = 'nxt' })
 if ok then
     exports.ox_inventory:AddItem(source, 'usb_decrypted', 1)
 end
 
 -- Non-yielding
-exports['nxt-minigames']:RunAsync(source, 'cipher', 4, function(ok, info) end)
+exports['nxt-minigames']:RunAsync(source, 'cipher', 4, function(ok, info) end, { theme = 'terminal' })
 
 exports['nxt-minigames']:IsBusy(source)   -- true while a session is open
 exports['nxt-minigames']:GetGames()       -- { { id, label }, ... } enabled only</pre>
 
 <h3>Client</h3>
 <pre>local ok = exports['nxt-minigames']:Start('signal', 3)   -- yields; call from a thread
+local ok2 = exports['nxt-minigames']:Start('echo', 4, { theme = 'sampler' })
 exports['nxt-minigames']:IsOpen()                         -- minigame or viewer on screen</pre>
 
 <h3>Fail reasons (<code>info.reason</code>)</h3>
@@ -68,11 +72,11 @@ end)</pre>
 
 <h2>Game ids</h2>
 <table><tr><th>Id</th><th>Name</th><th>Tunables (config.lua)</th></tr>
-<tr><td><code>cipher</code></td><td>Cipher Lock</td><td>length, symbols, tries, time</td></tr>
+<tr><td><code>cipher</code></td><td>Cipher Lock</td><td>length, tries, time (repeated digits from D6)</td></tr>
 <tr><td><code>handshake</code></td><td>Handshake Sync</td><td>hits, faults, windowDeg, outerSpeed, innerSpeed, jitter, time</td></tr>
 <tr><td><code>traceroute</code></td><td>Traceroute</td><td>grid, hops, flashMs, time (+hops)</td></tr>
 <tr><td><code>packet</code></td><td>Packet Audit</td><td>rules, packets, packetMs, errors</td></tr>
-<tr><td><code>portsweep</code></td><td>Port Sweep</td><td>grid, density, time</td></tr>
+<tr><td><code>portsweep</code></td><td>Port Sweep</td><td>grid (7–10), density, time</td></tr>
 <tr><td><code>patch</code></td><td>Patch Panel</td><td>pairs, faults, time</td></tr>
 <tr><td><code>firewall</code></td><td>Firewall Run</td><td>lanes (4–6), layers, strikes, speed, spacing</td></tr>
 <tr><td><code>keymatrix</code></td><td>Key Matrix</td><td>grid, sequence, slack, codes (≤ 6), time</td></tr>
@@ -80,11 +84,25 @@ end)</pre>
 <tr><td><code>carrier</code></td><td>Carrier Tune</td><td>rounds, tolerance, noise, time</td></tr>
 <tr><td><code>memdiff</code></td><td>Memory Diff</td><td>cols, rows, diffs, errors, time</td></tr>
 <tr><td><code>intercept</code></td><td>Intercept</td><td>targets, errors, speed, spawnSec</td></tr>
-<tr><td><code>signal</code></td><td>Signal Path</td><td>grid, time</td></tr></table>
+<tr><td><code>signal</code></td><td>Signal Path</td><td>grid, time</td></tr>
+<tr><td><code>crawler</code></td><td>Net Crawler</td><td>mazeW, mazeH, daemons, daemonSpeed, chaos, fragments, tokens, spoofSec, strikes, time</td></tr>
+<tr><td><code>pingball</code></td><td>Ping Ball (look: arcade)</td><td>targets, strikes, gravity</td></tr>
+<tr><td><code>buffer</code></td><td>Buffer Flush</td><td>lines, dropSec, garbageSec (from D7), time</td></tr>
+<tr><td><code>clocksync</code></td><td>Clock Sync (synthwave)</td><td>notes, bpm, travel, chords, perfect, good, misses</td></tr>
+<tr><td><code>portknock</code></td><td>Port Knock (tactical)</td><td>knocks, bpm, approach, size, trails, spinTurns, perfect, good, misses</td></tr>
+<tr><td><code>keyer</code></td><td>Keyer (telegraph)</td><td>letters, unit, tapeSpeed, releaseWin, perfect, good, misses</td></tr>
+<tr><td><code>echo</code></td><td>Echo (sampler)</td><td>rounds, length, bpm, perfect, good, strikes</td></tr>
+<tr><td><code>beatcrawl</code></td><td>Beat Crawler (club)</td><td>mazeW, mazeH, daemons, fragments, spoofBeats, chaos, bpm, perfect, good, strikes, time</td></tr></table>
+<p>Memory Diff always opens in the terminal look unless a call forces another.</p>
 <p>Every tunable is <code>{ value at D1, value at D10 }</code> and is linearly interpolated. Rule-style switches (hidden output on Key Derivation D7+, lookalike decoys on Intercept D6+, and so on) are fixed in the game code.</p>
 
 <h2>Themes</h2>
-<p><code>Config.Theme = 'terminal'</code> (default) or <code>'nxt'</code>. The theme is sent with every play and viewer message, so changing it takes a resource restart, not a client rebuild.</p>
+<p>Which look a session gets, first match wins:</p>
+<ol><li>the calling script's <code>{ theme = '...' }</code> for that call (any name in <code>Config.Themes</code>: <code>nxt</code>, <code>terminal</code>, <code>synthwave</code>, <code>tactical</code>, <code>telegraph</code>, <code>sampler</code>, <code>arcade</code>, <code>club</code>; an unknown name is ignored);</li>
+<li>the game's own look (Memory Diff terminal, Ping Ball arcade, the five rhythm games one each);</li>
+<li><code>Config.Theme</code> (default <code>terminal</code>).</li></ol>
+<p>In the viewer, AUTO shows each game's own look and the other buttons force one look on every game.</p>
+<p>Reduce motion: when nxt-hud's switch is on (<code>exports['nxt-hud']:isReduceMotion()</code>), shakes, tile flips, sparks, the club floor and other ambient flashing stop. Beat cues the rhythm games need to be played stay.</p>
 <p>Adding a theme: add a palette to <code>THEMES</code> in <code>web/js/core.js</code> (canvas colours, font, cable colours, overlay copy) and a <code>body[data-theme=name]</code> block in <code>style.css</code> that overrides the CSS variables. Canvas games read the palette at draw time and DOM games read the CSS variables, so no game file needs touching.</p>
 <p>Fonts are self-hosted. JetBrains Mono is a custom subset (Latin plus arrows ← ↑ → ↓ and typographic punctuation) built from the official release with <code>pyftsubset</code>, because the stock Latin subset lacks ← and →.</p>
 <h2>Admin viewer</h2>
@@ -102,9 +120,9 @@ end)</pre>
 
 <h2>Open [VERIFY] items</h2>
 <ul>
+<li>None of the 1.3.0 layouts or the eight new games have been played in game. The rhythm games' audio timing in the game's browser is untested; <code>Config.AudioOffsetMs</code> is there if the beat sounds late.</li>
 <li>All <code>minSolveMs</code> floors are estimates from headless play. Watch for <code>too_fast</code> warnings on legit players and loosen those games.</li>
 <li>All difficulty curves are first-pass. D9–10 on Cipher Lock, Key Derivation and Packet Audit need real play-testing.</li>
-<li>Terminal theme on all 13 games has only been reviewed in headless Chromium, not in-game. Play a round of each in CEF before going live.</li>
 <li>In-CEF behaviour of Esc and right-click (Port Sweep flags, Signal Path rotate-back) is untested outside Chromium.</li>
 </ul>
 </main></body></html>

@@ -21,7 +21,7 @@ local function floorMs(id, d)
 end
 
 --- Validates inputs and opens a session. Returns session or nil, reason.
-local function open(src, id, difficulty, origin)
+local function open(src, id, difficulty, origin, opts)
     local g = type(id) == 'string' and Config.Games[id]
     if not g or not g.enabled then return nil, 'unknown_game' end
     local d = tonumber(difficulty)
@@ -32,6 +32,7 @@ local function open(src, id, difficulty, origin)
 
     local s = {
         token = newToken(), src = src, id = id, difficulty = d, origin = origin,
+        theme = type(opts) == 'table' and type(opts.theme) == 'string' and Config.Themes[opts.theme] and opts.theme or nil,
         issued = GetGameTimer(), expires = GetGameTimer() + Config.SessionTimeoutSec * 1000,
         promise = promise.new(),
     }

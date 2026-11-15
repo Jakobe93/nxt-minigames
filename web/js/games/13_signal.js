@@ -21,12 +21,14 @@ mount(root, api) {
   for (let i = 0; i < N * N; i++) if (!onPath.has(i)) { let m = U.pick([5, 3, 3, 7]); for (let k = U.rand(4); k > 0; k--) m = rot(m); tiles[i] = m; }
   for (let i = 0; i < N * N; i++) for (let k = 1 + U.rand(3); k > 0; k--) tiles[i] = rot(tiles[i]);
   let moves = 0;
-  const sz = Math.floor(Math.min(64, 380 / N));
-  const grid = E('div', {class: 'sp-grid', style: `grid-template-columns:repeat(${N},${sz}px);grid-auto-rows:${sz}px`});
+  const sz = Math.floor(Math.min(58, 340 / N));
+  const grid = E('div', {class: 'sp-grid', style: `grid-template-columns:repeat(${N},${sz}px);grid-auto-rows:${sz}px;gap:0`});
   const els = tiles.map((_, i) => E('button', {class: 'sp-t', onclick: () => turn(i, 1), oncontextmenu: e => { e.preventDefault(); turn(i, -1); }}));
   grid.append(...els);
-  const port = (row, cls, txt) => E('div', {class: 'sp-port ' + cls, style: `top:${row * (sz + 3) + sz / 2}px`}, E('span', {text: txt}));
-  const board = E('div', {class: 'sp-board'}, port(sr, 'src', 'SRC'), grid, port(tr, 'dst', 'RX'));
+  // connectors are positioned against the grid itself (not the board), with a copper stub the same width as a trace
+  const stub = () => E('i', {class: 'sp-stub', style: `height:${Math.round(sz * .14)}px`});
+  const port = (row, cls, txt) => E('div', {class: 'sp-port ' + cls, style: `top:${row * sz + sz / 2}px`}, cls === 'src' ? [E('span', {text: txt}), stub()] : [stub(), E('span', {text: txt})]);
+  const board = E('div', {class: 'sp-board pcb'}, E('div', {class: 'pcb-silk', text: `NXT-RELAY REV ${String.fromCharCode(65 + U.rand(6))} · ${N}×${N}`}), E('div', {class: 'sp-gw'}, grid, port(sr, 'src', 'J1'), port(tr, 'dst', 'U1 RX')));
   root.append(E('div', {class: 'sp'}, board));
   function powered() {
     const on = new Set(); if (!(tiles[sr * N] & Wb)) return on;
@@ -39,7 +41,7 @@ mount(root, api) {
   function draw(i, on) {
     const m = tiles[i], g = S('svg', {viewBox: '0 0 100 100'}), pts = {1: [50, 0], 2: [100, 50], 4: [50, 100], 8: [0, 50]};
     for (const b of [1, 2, 4, 8]) if (m & b) g.append(S('line', {x1: 50, y1: 50, x2: pts[b][0], y2: pts[b][1]}));
-    g.append(S('circle', {cx: 50, cy: 50, r: 9}));
+    g.append(S('circle', {cx: 50, cy: 50, r: 13, class: 'pad'}), S('circle', {cx: 50, cy: 50, r: 5, class: 'via'}));
     els[i].replaceChildren(g); els[i].classList.toggle('on', on.has(i));
   }
   function paint(anim, dir) {

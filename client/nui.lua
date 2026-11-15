@@ -28,6 +28,14 @@ function Nui.viewerPayload()
     return { tuning = tuning, enabled = enabled, theme = Config.Theme }
 end
 
+--- Player settings every screen needs: nxt-hud's Reduce motion switch, and rhythm audio.
+function Nui.withPrefs(data)
+    data.reduceMotion = GetResourceState('nxt-hud') == 'started' and exports['nxt-hud']:isReduceMotion() == true
+    data.volume = Config.Volume
+    data.audioOffsetMs = Config.AudioOffsetMs
+    return data
+end
+
 AddEventHandler('onResourceStop', function(res)
     if res == GetCurrentResourceName() then SetNuiFocus(false, false) end
 end)

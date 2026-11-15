@@ -11,10 +11,15 @@ end
 local function play(s)
     if viewerOpen then viewerOpen = false; Nui.close() end
     current = s
-    Nui.send('play', {
-        token = s.token, id = s.id, difficulty = s.difficulty,
-        tuning = s.tuning, introMs = Config.IntroMs, theme = Config.Theme,
-    })
+    Nui.send('play', Nui.withPrefs({
+        token = s.token,
+        id = s.id,
+        difficulty = s.difficulty,
+        tuning = s.tuning,
+        introMs = Config.IntroMs,
+        theme = s.theme,
+        forceTheme = s.forceTheme,
+    }))
     Nui.focus(true)
     -- Watchdog: if the NUI never reports (crash, broken page), release focus and fail.
     SetTimeout(Config.SessionTimeoutSec * 1000 + 5000, function() finish(s, false) end)
@@ -44,7 +49,7 @@ end)
 RegisterNetEvent('nxt-minigames:client:viewer', function()
     if current then return end
     viewerOpen = true
-    Nui.send('viewer', Nui.viewerPayload())
+    Nui.send('viewer', Nui.withPrefs(Nui.viewerPayload()))
     Nui.focus(true)
 end)
 
@@ -56,10 +61,10 @@ end)
 
 --- Client export for non-reward use (flavour, practice, gating purely client-side
 --- visuals). Anything that grants items/money/access must use the server export Run.
---- local ok = exports['nxt-minigames']:Start('cipher', 4)   -- yields
-exports('Start', function(id, difficulty)
+--- local ok = exports['nxt-minigames']:Start('cipher', 4, { theme = 'nxt' })   -- yields; opts optional
+exports('Start', function(id, difficulty, opts)
     if current then return false end
-    local s = lib.callback.await('nxt-minigames:cb:request', false, id, difficulty)
+    local s = lib.callback.await('nxt-minigames:cb:request', false, id, difficulty, opts)
     if not s then return false end
     s.p = promise.new()
     play(s)

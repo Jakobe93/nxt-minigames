@@ -1,0 +1,547 @@
+{
+  "page": "web/index.html",
+  "nui": true,
+  "viewport": [
+    1280,
+    800
+  ],
+  "settle": 600,
+  "backdrop": "#2b2f3a",
+  "init": "(function(){var a=12345;Math.random=function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}})();window.AudioContext=undefined;window.webkitAudioContext=undefined;window.fetch=function(){return Promise.resolve({json:function(){return Promise.resolve({})}})};",
+  "screens": [
+    {
+      "name": "cipher-terminal",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "cipher",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "cipher-nxt",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "cipher",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "nxt"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "handshake",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "handshake",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "traceroute",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "traceroute",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "packet",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "packet",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "portsweep",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "portsweep",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "patch",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "patch",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "firewall",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "firewall",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "keymatrix-terminal",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "keymatrix",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "keymatrix-nxt",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "keymatrix",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "nxt"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "keyderiv",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "keyderiv",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "carrier",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "carrier",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "memdiff",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "memdiff",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "intercept",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "intercept",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "signal-terminal",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "signal",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "signal-nxt",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "signal",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal",
+            "forceTheme": "nxt"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "crawler",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "crawler",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "pingball",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "pingball",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "buffer",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "buffer",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "clocksync",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "clocksync",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "portknock",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "portknock",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "keyer",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "keyer",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "echo",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "echo",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    },
+    {
+      "name": "beatcrawl",
+      "steps": [
+        {
+          "message": {
+            "action": "play",
+            "token": "shot",
+            "id": "beatcrawl",
+            "difficulty": 5,
+            "introMs": 0,
+            "tuning": {},
+            "theme": "terminal"
+          },
+          "wait": 150
+        },
+        {
+          "click": "#mgOver .btn",
+          "wait": 1200
+        }
+      ],
+      "clip": ".mg-wrap"
+    }
+  ]
+}

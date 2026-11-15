@@ -11,11 +11,41 @@ const THEMES = {
         raise: '#0F1A14', panel: '#0A120E', base: '#050807', sunk: '#030604', ink: '#4ef08a', ff: "'JetBrains Mono', Consolas, monospace",
         cables: ['#4ef08a', '#e8c547', '#f0645a', '#7fd6ff', '#c6f5d6', '#ff9f5a', '#b18cff', '#e3f06a'],
         say: {start: 'Connect', again: 'Reconnect', ok: 'Access granted', no: 'Connection lost'}},
+  // ---- per-game identity themes (rhythm set) ----
+  synthwave: {cyan: '#2de2e6', amber: '#ff4fd8', green: '#b18cff', red: '#ff5566', text: '#f3e9ff', dim: '#9a86c2', mute: '#4a3a6b',
+        raise: '#241a3d', panel: '#1a1230', base: '#120b22', sunk: '#0b0616', ink: '#e0c8ff', ff: 'Rajdhani, sans-serif',
+        cables: ['#2de2e6', '#ff4fd8', '#b18cff', '#ff5566', '#ffd166', '#7afcff', '#ff9ef0', '#9dff9d'],
+        say: {start: 'Sync up', again: 'Replay', ok: 'In sync', no: 'Out of sync'}},
+  tactical: {cyan: '#ffb000', amber: '#ff6a1f', green: '#a4ff5c', red: '#ff3b30', text: '#ffe2a8', dim: '#b38a4a', mute: '#5a4526',
+        raise: '#1d1709', panel: '#151006', base: '#0e0b05', sunk: '#080602', ink: '#ffb000', ff: "'JetBrains Mono', Consolas, monospace",
+        cables: ['#ffb000', '#ff6a1f', '#a4ff5c', '#ff3b30', '#ffe2a8', '#ffd35c', '#c9ff9a', '#ff9a6b'],
+        say: {start: 'Engage', again: 'Re-engage', ok: 'Port open', no: 'Knock rejected'}},
+  telegraph: {cyan: '#f2c46d', amber: '#d98b52', green: '#a8d672', red: '#e2553f', text: '#f3e6cc', dim: '#b39a78', mute: '#5c4632',
+        raise: '#33231a', panel: '#241810', base: '#1a120b', sunk: '#120c07', ink: '#f2c46d', ff: 'Rajdhani, sans-serif',
+        cables: ['#f2c46d', '#d98b52', '#a8d672', '#e2553f', '#f3e6cc', '#c9a36a', '#8fb86a', '#b5623a'],
+        say: {start: 'Key up', again: 'Resend', ok: 'Message sent', no: 'Garbled'}},
+  sampler: {cyan: '#35d0ba', amber: '#ff9f1c', green: '#c3f73a', red: '#ff4f79', text: '#f1f1ee', dim: '#9a9ca3', mute: '#4b4d54',
+        raise: '#2e3035', panel: '#232428', base: '#1b1c1f', sunk: '#141518', ink: '#ffffff', ff: 'Rajdhani, sans-serif',
+        cables: ['#35d0ba', '#ff9f1c', '#c3f73a', '#ff4f79', '#7aa2ff', '#ffe066', '#b784ff', '#5ef0d4'],
+        say: {start: 'Play', again: 'Again', ok: 'Pattern matched', no: 'Off tempo'}},
+  arcade: {cyan: '#3fa9ff', amber: '#ffcc00', green: '#44ff66', red: '#ff2d4a', text: '#fff4e0', dim: '#b59b7a', mute: '#5a4630',
+        raise: '#221a2c', panel: '#1a1422', base: '#110d17', sunk: '#0a0710', ink: '#ffcc00', ff: 'Rajdhani, sans-serif',
+        cables: ['#3fa9ff', '#ffcc00', '#44ff66', '#ff2d4a', '#ff7ad9', '#ff9a1f', '#9d7bff', '#7afcff'],
+        say: {start: 'Press start', again: 'Play again', ok: 'Winner', no: 'Game over'}},
+  club: {cyan: '#00f0ff', amber: '#ffe600', green: '#39ff88', red: '#ff3860', text: '#fdf0ff', dim: '#a58bc4', mute: '#4a3566', wall: '#b026ff',
+        raise: '#1d1230', panel: '#120a1f', base: '#0a0612', sunk: '#07040d', ink: '#ff9bf0', ff: 'Rajdhani, sans-serif',
+        floor: ['#ff2bd6', '#00f0ff', '#39ff88', '#ffe600', '#b026ff'],
+        cables: ['#00f0ff', '#ff2bd6', '#39ff88', '#ffe600', '#b026ff', '#ff8a00', '#7afcff', '#ff9bf0'],
+        say: {start: 'Hit the floor', again: 'Again', ok: 'Floor cleared', no: 'Traced'}},
 };
 const C = {};
 let THEME = 'terminal';
+// Theme resolution: per-call override > the game's own default (reg {theme}) > server Config.Theme.
+let BASE_THEME = 'terminal', FORCE_THEME = null;
+const themeFor = g => (FORCE_THEME && THEMES[FORCE_THEME]) ? FORCE_THEME : (g && THEMES[g.theme]) ? g.theme : BASE_THEME;
 function applyTheme(name) {
   THEME = THEMES[name] ? name : 'terminal';
+  for (const k in C) delete C[k];
   Object.assign(C, THEMES[THEME]);
   document.body.dataset.theme = THEME;
 }
@@ -38,7 +68,10 @@ const U = {
   shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; },
   hex: (n, w = 2) => n.toString(16).toUpperCase().padStart(w, '0'),
   a(hex, al) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${al})`; },
-  shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); },
+  // Layout-independent key: physical letter/space keys by position (e.code), so A/S/D/W/Z/X work on
+  // AZERTY, Cyrillic and other layouts; everything else (arrows, Enter, digits) by e.key, lower-cased.
+  k(e) { const c = e.code || ''; return c.startsWith('Key') ? c.slice(3).toLowerCase() : c === 'Space' ? ' ' : (e.key || '').toLowerCase(); },
+  shake(el) { if (NUI.reduce) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); },
   strikes: (used, max) => `<span class="pips">${Array.from({length: max}, (_, i) => `<i class="${i < used ? 'x' : ''}"></i>`).join('')}</span>`,
   canvas(parent, w, h) {
     const dpr = window.devicePixelRatio || 1;
@@ -48,6 +81,59 @@ const U = {
   rr(x, X, Y, w, h, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); },
 };
 const GAMES = [];
+
+/* ---------- shared rhythm engine ----------
+   One beat clock per session: song time (seconds, negative during the count-in), synthesised
+   drums scheduled ahead on Web Audio, a visual pulse for muted play, and PERFECT/GOOD timing
+   judgement. Audio is optional: if the context is blocked the game still runs on the clock. */
+const Rhythm = {
+  create(api, {bpm, countIn = 4, drums = true, volume = NUI.volume}) {
+    const beat = 60 / bpm, lead = countIn * beat, p0 = performance.now();
+    let ctx = null, out = null, noise = null, a0 = 0;
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      out = ctx.createGain(); out.gain.value = volume; out.connect(ctx.destination); a0 = ctx.currentTime;
+      noise = ctx.createBuffer(1, ctx.sampleRate * .1, ctx.sampleRate); const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    } catch (e) { ctx = null; }
+    const at = songT => a0 + lead + songT - NUI.audioOffset;   // song time -> audio clock (offset: Config.AudioOffsetMs)
+    const r = {
+      bpm, beat, lead, perfect: .06, good: .12,
+      time: () => (performance.now() - p0) / 1000 - lead,
+      pulse() { const t = r.time() / beat; return Math.pow(1 - (t - Math.floor(t)), 3); },
+      windows(p, g) { r.perfect = p; r.good = g; },
+      judge(dt) { const a = Math.abs(dt); return a <= r.perfect ? 'perfect' : a <= r.good ? 'good' : null; },
+      blip(freq, dur = .09, type = 'square', vol = .5, when = null) {
+        if (!ctx) return; const t = when == null ? ctx.currentTime : at(when); if (t < ctx.currentTime - .01) return;
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .02);
+      },
+      kick(when) { if (!ctx) return; const t = at(when), o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + .12);
+        g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .16); o.connect(g); g.connect(out); o.start(t); o.stop(t + .18); },
+      hat(when, vol = .18) { if (!ctx) return; const t = at(when), s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+        s.buffer = noise; f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .04);
+        s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + .06); },
+      tone: null,
+      toneOn(freq = 700) { if (!ctx || r.tone) return; const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(.35, ctx.currentTime + .01); o.connect(g); g.connect(out); o.start(); r.tone = {o, g}; },
+      toneOff() { if (!r.tone) return; const {o, g} = r.tone, t = ctx.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + .015); o.stop(t + .03); r.tone = null; },
+    };
+    // schedule count-in clicks + drums a little ahead of the clock
+    let next = -countIn;                                      // next beat index (in beats, song time / beat)
+    api.loop(() => {
+      if (!ctx) return; const horizon = r.time() + .25;
+      while (next * beat < horizon) {
+        const t = next * beat;
+        if (next < 0) r.blip(next === -countIn ? 1320 : 990, .05, 'square', .25, t);
+        else if (drums) { if (next % 2 === 0) r.kick(t); r.hat(t); r.hat(t + beat / 2, .1); }
+        next++;
+      }
+    });
+    api.cleanup(() => { r.toneOff(); if (ctx) ctx.close(); });
+    return r;
+  },
+};
 const reg = g => GAMES.push(g);
 
 /* ---------- NUI bridge ---------- */
@@ -58,7 +144,15 @@ function post(cb, data = {}) {
   return fetch(`https://${RES}/${cb}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)})
     .then(r => r.json()).catch(() => null);
 }
-const NUI = {mode: null, token: null, tuning: {}, enabled: null, introTimer: 0};
+const NUI = {mode: null, token: null, tuning: {}, enabled: null, introTimer: 0, reduce: false, volume: .32, audioOffset: 0};
+// Player settings sent with every play/viewer message (client/nui.lua Nui.withPrefs).
+// Reduce motion is nxt-hud's switch: shakes, sweeps and ambient flashing stop; beat cues stay.
+function prefs(m) {
+  NUI.reduce = m.reduceMotion === true;
+  document.documentElement.classList.toggle('nx-reduce', NUI.reduce);
+  if (typeof m.volume === 'number') NUI.volume = Math.max(0, Math.min(1, m.volume));
+  if (typeof m.audioOffsetMs === 'number') NUI.audioOffset = m.audioOffsetMs / 1000;
+}
 const findGame = id => GAMES.find(g => g.id === id);
 function setState(word, cls = '') { const e = $('#mgState'); e.textContent = word; e.className = 'mg-state ' + cls; }
 const clock = ms => { const t = Math.max(0, ms) / 1000; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${(t % 60).toFixed(1).padStart(4, '0')}`; };
@@ -82,6 +176,7 @@ function begin(g, d) {
     on(t, ev, fn, o) { t.addEventListener(ev, fn, o); s.clean.push(() => t.removeEventListener(ev, fn, o)); },
     key(fn) { api.on(window, 'keydown', e => { if (s.alive && !e.repeat) fn(e); }); },
     loop(fn) { let last = performance.now(), id; const f = t => { if (!s.alive) return; const dt = Math.min(.05, (t - last) / 1000); last = t; fn(dt, t); id = requestAnimationFrame(f); }; id = requestAnimationFrame(f); s.clean.push(() => cancelAnimationFrame(id)); },
+    cleanup(fn) { s.clean.push(fn); },
     after(ms, fn) { const id = setTimeout(() => { if (s.alive) fn(); }, ms); s.clean.push(() => clearTimeout(id)); return id; },
   };
   s.api = api;
@@ -119,6 +214,7 @@ function finish(s, ok, msg) {
 }
 function overlay(node) { const o = $('#mgOver'); o.innerHTML = ''; if (node) { o.append(node); o.classList.add('show'); } else o.classList.remove('show'); }
 function intro(g, d, autoMs = 0) {
+  applyTheme(themeFor(g));
   end(SESSION); SESSION = null; clearTimeout(NUI.introTimer);
   $('#mgTitle').textContent = g.name;
   $('#mgPips').innerHTML = Array.from({length: 10}, (_, i) => `<i class="${i < d ? 'on' : ''}"></i>`).join('');
@@ -141,7 +237,7 @@ function hideAll() { clearTimeout(NUI.introTimer); end(SESSION); SESSION = null;
 
 function openPlay(m) {
   const g = findGame(m.id);
-  NUI.token = m.token; NUI.tuning = m.tuning || {}; applyTheme(m.theme);
+  prefs(m); NUI.token = m.token; NUI.tuning = m.tuning || {}; BASE_THEME = THEMES[m.theme] ? m.theme : BASE_THEME; FORCE_THEME = m.forceTheme || null;
   show('play');
   if (!g) { post('result', {token: m.token, ok: false, reason: 'unknown_game'}); return; }
   intro(g, Math.max(1, Math.min(10, m.difficulty | 0)), m.introMs ?? 3500);
@@ -150,7 +246,7 @@ function openPlay(m) {
 let harnessBuilt = false, hSel = null, hDiff = 2, hPaint = () => {};
 function openViewer(m) {
   NUI.token = null; NUI.tuning = m.tuning || {}; NUI.enabled = Array.isArray(m.enabled) ? new Set(m.enabled) : null;
-  applyTheme(m.theme);
+  prefs(m); BASE_THEME = THEMES[m.theme] ? m.theme : BASE_THEME; FORCE_THEME = null; applyTheme(BASE_THEME);
   show('viewer');
   const list = GAMES.filter(g => !NUI.enabled || NUI.enabled.has(g.id));
   const gl = $('#devGames'), dl = $('#devDiff');
@@ -159,7 +255,7 @@ function openViewer(m) {
     [...gl.children].forEach((b, i) => b.classList.toggle('on', list[i] === hSel));
     [...dl.children].forEach((b, i) => b.classList.toggle('on', i + 1 === hDiff));
     $('#devDesc').textContent = hSel ? hSel.desc : 'No minigames enabled.';
-    [...$('#devTheme').children].forEach(b => b.classList.toggle('on', b.dataset.k === THEME));
+    [...$('#devTheme').children].forEach(b => b.classList.toggle('on', b.dataset.k === (FORCE_THEME || 'auto')));
   };
   hPaint = paint;
   list.forEach(g => gl.append(E('button', {text: g.name, onclick: () => { hSel = g; paint(); intro(hSel, hDiff); }})));
@@ -168,7 +264,7 @@ function openViewer(m) {
     $('#devRun').onclick = () => hSel && intro(hSel, hDiff);
     $('#devClose').onclick = closeViewer;
     const tl = $('#devTheme');
-    Object.keys(THEMES).forEach(k => tl.append(E('button', {text: k, 'data-k': k, onclick: () => { applyTheme(k); hPaint(); if (hSel) intro(hSel, hDiff); }})));
+    ['auto', ...Object.keys(THEMES)].forEach(k => tl.append(E('button', {text: k, 'data-k': k, title: k === 'auto' ? "Each game's own default" : `Force ${k} on every game`, onclick: () => { FORCE_THEME = k === 'auto' ? null : k; hPaint(); if (hSel) intro(hSel, hDiff); }})));
     harnessBuilt = true;
   }
   paint(); if (hSel) intro(hSel, hDiff);

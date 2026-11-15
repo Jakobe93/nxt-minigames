@@ -19,7 +19,7 @@ mount(root, api) {
   }
   for (let i = 0; i < 4; i++) spawn(TOP - 40 - i * spacing);
   const move = d => { lane = Math.max(0, Math.min(Lc - 1, lane + d)); press[d < 0 ? 'l' : 'r'] = 1; };
-  api.key(e => { const k = e.key.toLowerCase(); if (k === 'a' || e.key === 'ArrowLeft') move(-1); if (k === 'd' || e.key === 'ArrowRight') move(1); });
+  api.key(e => { const k = U.k(e); if (k === 'a' || e.key === 'ArrowLeft') move(-1); if (k === 'd' || e.key === 'ArrowRight') move(1); });
   api.on(x.canvas, 'mousedown', e => move(e.offsetX < px ? -1 : 1));
   const st = () => api.status(`<span>Layers <b>${passed}/${goal}</b></span>`);
   api.loop(dt => {
@@ -53,7 +53,7 @@ mount(root, api) {
     x.fillStyle = hitFx > .5 ? C.red : low ? C.amber : C.cyan; x.fillRect(bx + 2, 12, (bw - 4) * uptime, 8);
     x.textAlign = 'right'; x.fillStyle = low || maxS - strikes <= 1 ? C.amber : C.dim; x.fillText(rlab, X0 + PW, 16);
     // playfield
-    const sx = hitFx > .6 ? (Math.random() * 2 - 1) * 5 * hitFx : 0;
+    const sx = hitFx > .6 && !NUI.reduce ? (Math.random() * 2 - 1) * 5 * hitFx : 0;
     x.save(); x.beginPath(); x.rect(X0 - 8, TOP, PW + 16, FH); x.clip(); x.translate(sx, 0);
     x.fillStyle = C.sunk; x.fillRect(X0, TOP, PW, FH);
     if (hitFx) { x.fillStyle = U.a(C.red, .16 * hitFx); x.fillRect(X0, TOP, PW, FH); }

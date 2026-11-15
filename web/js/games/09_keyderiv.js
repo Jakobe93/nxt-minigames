@@ -1,5 +1,5 @@
-reg({id: 'keyderiv', name: 'Key Derivation', desc: 'Set the input bits so the value that comes out of the derivation chain equals the target.',
-controls: 'Click bits or press 1–8 · Enter to derive',
+reg({id: 'keyderiv', name: 'Key Derivation', desc: 'Set the DIP switches so the key that comes out of the derivation chain matches the target.',
+controls: 'Click switches or press 1–8 · Enter to derive',
 mount(root, api) {
   const B = api.d <= 3 ? 4 : 8, mask = (1 << B) - 1, nOps = api.ti('ops', 0, 3), live = api.d <= 6;
   const kinds = B === 4 ? ['XOR', 'ROL'] : ['XOR', 'ROL', 'ADD', 'NOT'];
@@ -7,32 +7,38 @@ mount(root, api) {
     ops.push({t, v: t === 'ROL' ? 1 + U.rand(B - 1) : t === 'NOT' ? 0 : 1 + U.rand(mask)}); }
   const run = v => ops.reduce((x, o) => o.t === 'XOR' ? x ^ o.v : o.t === 'ADD' ? (x + o.v) & mask : o.t === 'NOT' ? ~x & mask : ((x << o.v) | (x >> (B - o.v))) & mask, v);
   let secret; do secret = 1 + U.rand(mask); while (run(0) === run(secret));
-  const target = run(secret), W = B === 4 ? 1 : 2;
-  const fmt = v => `0x${U.hex(v, W)}`, bin = v => v.toString(2).padStart(B, '0');
+  const target = run(secret), W = B === 4 ? 1 : 2, fmt = v => `0x${U.hex(v, W)}`;
   let val = 0, checks = 3;
-  const bits = Array.from({length: B}, (_, k) => E('button', {class: 'kd-b', onclick: () => flip(k)}, E('b', {text: '0'}), E('small', {text: 1 << (B - 1 - k)})));
-  const inV = E('div', {class: 'kd-v'}), outV = E('div', {class: 'kd-v'}), outBits = E('div', {class: 'kd-bin'});
-  const chain = E('div', {class: 'kd-chain'}, E('div', {class: 'kd-node'}, E('span', {text: 'Input'}), inV),
-    ops.map(o => [E('i', {class: 'kd-arr'}), E('div', {class: 'kd-op', text: o.t === 'NOT' ? 'NOT' : o.t === 'ROL' ? `ROL ${o.v}` : `${o.t} ${fmt(o.v)}`})]),
-    E('i', {class: 'kd-arr'}), E('div', {class: 'kd-node out'}, E('span', {text: 'Output'}), outV, outBits));
+  // seven-segment hex digits
+  const SEG = {0: 'abcdef', 1: 'bc', 2: 'abdeg', 3: 'abcdg', 4: 'bcfg', 5: 'acdfg', 6: 'acdefg', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg', A: 'abcefg', B: 'cdefg', C: 'adef', D: 'bcdeg', E: 'adefg', F: 'aefg', '-': 'g'};
+  const P = {a: 'M6 2h20l-3 4H9z', b: 'M27 3v19l-4-3V7z', c: 'M27 26v19l-4-4V29z', d: 'M6 46h20l-3-4H9z', e: 'M5 26v19l4-4V29z', f: 'M5 3v19l4-3V7z', g: 'M7 24l3-2h12l3 2-3 2H10z'};
+  const seven = (str, cls) => E('div', {class: 'sg ' + (cls || '')}, [...str].map(ch => { const s = S('svg', {viewBox: '0 0 32 48'});
+    for (const k in P) s.append(S('path', {d: P[k], class: (SEG[ch] || '').includes(k) ? 'on' : ''})); return s; }));
+  const disp = (label, str, cls) => E('div', {class: 'kd2-disp ' + (cls || '')}, E('span', {text: label}), seven(str, cls));
+  const sw = Array.from({length: B}, (_, k) => E('button', {class: 'dip-s', onclick: () => flip(k)}, E('i'), E('small', {text: k + 1})));
+  const inBox = E('div'), outBox = E('div');
   const derive = E('button', {class: 'btn pri', text: 'Derive', onclick: check});
-  root.append(E('div', {class: 'kd'},
-    E('div', {class: 'kd-tgt'}, E('div', {class: 'lbl', text: 'Target key'}), E('div', {class: 'kd-t', text: fmt(target)}),
-      api.d <= 5 && E('div', {class: 'kd-bin', text: bin(target)}), api.d <= 2 && E('div', {class: 'kd-dec', text: `= ${target} decimal`})),
-    E('div', {class: 'lbl', text: 'Input bits'}), E('div', {class: 'kd-bits'}, bits), chain,
-    !live && E('div', {class: 'kd-foot'}, E('span', {class: 'kd-note', text: 'Output is sealed on this difficulty. Each derive uses one check.'}), derive)));
+  root.append(E('div', {class: 'kd2'},
+    E('div', {class: 'kd2-top'},
+      E('div', {class: 'dip'}, E('div', {class: 'dip-h'}, E('span', {text: 'ON'}), E('span', {text: `SW1 · ${B}-BIT`})), E('div', {class: 'dip-row'}, sw),
+        E('div', {class: 'dip-w'}, Array.from({length: B}, (_, k) => E('span', {text: 1 << (B - 1 - k)})))),
+      disp('Target', U.hex(target, W), 'tgt')),
+    E('div', {class: 'kd2-chain'}, inBox,
+      ops.map(o => [E('i', {class: 'kd2-wire'}), E('div', {class: 'ic'}, E('i', {class: 'ic-pins'}), E('b', {text: o.t === 'NOT' ? 'NOT' : o.t === 'ROL' ? `ROL ${o.v}` : `${o.t} ${U.hex(o.v, W)}`}), E('small', {text: `U${10 + U.rand(80)}`}), E('i', {class: 'ic-pins'}))]),
+      E('i', {class: 'kd2-wire'}), outBox),
+    !live && E('div', {class: 'kd-foot'}, E('span', {class: 'kd-note', text: `Output is sealed on this difficulty. ${checks} derive checks.`}), derive)));
   function flip(k) { val ^= 1 << (B - 1 - k); paint(); if (live && run(val) === target) api.after(250, () => api.win('Key derived')); }
   function check() {
-    const o = run(val); outV.textContent = fmt(o); outBits.textContent = bin(o);
+    const o = run(val); outBox.replaceChildren(disp('Output', U.hex(o, W), o === target ? 'match' : 'bad'));
     if (o === target) return api.win('Key derived');
-    checks--; U.shake(chain.lastChild); paint(true);
+    checks--; U.shake(outBox); api.status(`<span>Checks <b>${checks}</b></span>`);
     if (checks <= 0) api.fail(`Derivation mismatch. Input was ${fmt(secret)}`);
   }
-  function paint(keepOut) {
-    bits.forEach((b, k) => { const on = (val >> (B - 1 - k)) & 1; b.classList.toggle('on', !!on); b.firstChild.textContent = on; });
-    inV.textContent = fmt(val);
-    if (live) { const o = run(val); outV.textContent = fmt(o); outBits.textContent = bin(o); chain.lastChild.classList.toggle('match', o === target); }
-    else if (!keepOut) { outV.textContent = '0x' + '?'.repeat(W); outBits.textContent = '·'.repeat(B); }
+  function paint() {
+    sw.forEach((b, k) => b.classList.toggle('on', !!((val >> (B - 1 - k)) & 1)));
+    inBox.replaceChildren(disp('Input', U.hex(val, W)));
+    if (live) { const o = run(val); outBox.replaceChildren(disp('Output', U.hex(o, W), o === target ? 'match' : '')); }
+    else outBox.replaceChildren(disp('Output', '-'.repeat(W)));
     api.status(live ? `<span>${B}-bit key</span>` : `<span>Checks <b>${checks}</b></span>`);
   }
   api.key(e => { const n = +e.key; if (n >= 1 && n <= B) flip(n - 1); else if (e.key === 'Enter' && !live) check(); });

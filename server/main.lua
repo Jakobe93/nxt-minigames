@@ -2,12 +2,22 @@ local Store = SessionStore
 
 local function payload(s)
     local g = Config.Games[s.id]
-    return { token = s.token, id = s.id, difficulty = s.difficulty, tuning = { [s.id] = g.tuning or {} } }
+
+    return {
+        token = s.token,
+        id = s.id,
+        difficulty = s.difficulty,
+        tuning = { [s.id] = g.tuning or {} },
+        theme = Config.Theme,
+        forceTheme = s.theme,
+    }
 end
 
 --- Yields until the player finishes. Returns ok:boolean, info:{ reason, ms }
-local function run(src, id, difficulty)
-    local s, why = Store.open(src, id, difficulty, 'server')
+--- opts.theme picks the look for this call only ('terminal', 'nxt', 'synthwave', ...);
+--- without it the game's own look, then Config.Theme, is used.
+local function run(src, id, difficulty, opts)
+    local s, why = Store.open(src, id, difficulty, 'server', opts)
     if not s then return false, { reason = why } end
     TriggerClientEvent('nxt-minigames:client:play', src, payload(s))
     local r = Citizen.Await(s.promise)
@@ -19,9 +29,9 @@ end
 exports('Run', run)
 
 --- Non-yielding variant: cb(ok, info) fires once the session closes.
-exports('RunAsync', function(src, id, difficulty, cb)
+exports('RunAsync', function(src, id, difficulty, cb, opts)
     CreateThread(function()
-        local ok, info = run(src, id, difficulty)
+        local ok, info = run(src, id, difficulty, opts)
         if cb then cb(ok, info) end
     end)
 end)
@@ -38,10 +48,10 @@ exports('GetGames', function()
 end)
 
 -- Client-initiated sessions (exports['nxt-minigames']:Start on the client).
-lib.callback.register('nxt-minigames:cb:request', function(src, id, difficulty)
+lib.callback.register('nxt-minigames:cb:request', function(src, id, difficulty, opts)
     if not Config.AllowClientStart then return nil end
     if not Store.clientStartAllowed(src) then return nil end
-    local s = Store.open(src, id, difficulty, 'client')
+    local s = Store.open(src, id, difficulty, 'client', opts)
     return s and payload(s) or nil
 end)
 

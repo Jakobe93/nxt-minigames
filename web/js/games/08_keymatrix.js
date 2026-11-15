@@ -21,10 +21,10 @@ mount(root, api) {
   const grid = E('div', {class: 'km-grid', style: `grid-template-columns:repeat(${N},1fr)`});
   const cells = val.map((v, id) => E('button', {class: 'km-c', text: v, onclick: () => pick(id), onmouseenter: () => hover(id), onmouseleave: () => hover(-1)}));
   grid.append(...cells);
-  const seqEl = E('div', {class: 'km-seq'}, seq.map(v => E('span', {text: v})));
-  const bufEl = E('div', {class: 'km-buf'}, Array.from({length: buf}, () => E('span')));
-  root.append(E('div', {class: 'km'}, E('div', {}, E('div', {class: 'lbl', text: 'Code matrix'}), grid),
-    E('div', {class: 'km-side'}, E('div', {class: 'lbl', text: 'Sequence'}), seqEl, E('div', {class: 'lbl', text: 'Buffer'}), bufEl,
+  const seqEl = E('div', {class: 'km-seq km-tape'}, seq.map(v => E('span', {text: v})));
+  const bufEl = E('div', {class: 'km-buf km-tape'}, Array.from({length: buf}, () => E('span')));
+  root.append(E('div', {class: 'km km2'}, E('div', {class: 'km-card'}, E('div', {class: 'km-cardh'}, E('span', {text: 'KEY MATRIX'}), E('span', {text: `${N}×${N} · CARD 0${1 + U.rand(9)}`})), grid),
+    E('div', {class: 'km-side'}, E('div', {class: 'lbl', text: 'Target sequence'}), seqEl, E('div', {class: 'lbl', text: 'Upload tape'}), bufEl,
       E('p', {class: 'km-note', text: 'The sequence must appear unbroken in the buffer. Start in the top row.'}))));
   const inLine = (id, L) => L.row ? Math.floor(id / N) === L.i : id % N === L.i;
   function paint() {

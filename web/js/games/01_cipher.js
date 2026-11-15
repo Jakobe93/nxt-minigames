@@ -1,37 +1,49 @@
-reg({id: 'cipher', name: 'Cipher Lock', desc: 'Guess the key — every wrong try reveals how many letters matched.',
-controls: 'Type or click symbols · Backspace deletes · Enter submits',
+reg({id: 'cipher', name: 'Cipher Lock', desc: 'Crack the door code. Green: right digit, right slot. Amber: in the code, wrong slot. Dim: not in the code.',
+controls: 'Digits to enter · * clears · # submits',
 mount(root, api) {
-  const len = api.ti('length', 3, 5), A = 'ACEHKMPRX'.slice(0, api.ti('symbols', 5, 8)), tries = api.ti('tries', 16, 12);
-  const key = Array.from({length: len}, () => U.pick(A));
+  const len = api.ti('length', 4, 6), tries = api.ti('tries', 8, 5), dupes = api.d >= 6;
+  const pool = U.shuffle([...'0123456789']);
+  const code = dupes ? Array.from({length: len}, () => U.pick([...'0123456789'])) : pool.slice(0, len);
   let cur = [], used = 0;
-  const slots = E('div', {class: 'cl-slots'}, Array.from({length: len}, () => E('div', {class: 'cl-slot'})));
-  const hist = E('div', {class: 'cl-hist'}, E('div', {class: 'cl-empty', text: 'No attempts yet. Each submit tells you how many symbols are in the right position.'}));
-  const pad = E('div', {class: 'cl-pad'}, [...A].map(c => E('button', {class: 'cl-key', text: c, onclick: () => add(c)})));
-  root.append(E('div', {class: 'cl'},
-    E('div', {class: 'cl-l'}, E('div', {class: 'lbl', text: 'Key'}), slots, pad,
-      E('div', {class: 'cl-fns'}, E('button', {class: 'btn', text: 'Delete', onclick: del}), E('button', {class: 'btn pri', text: 'Submit', onclick: submit}))),
-    E('div', {class: 'cl-r'}, E('div', {class: 'lbl', text: 'Attempts'}), hist)));
-  function add(c) { if (cur.length < len) { cur.push(c); draw(); } }
-  function del() { cur.pop(); draw(); }
+  const lcd = E('div', {class: 'ck-lcd'}, Array.from({length: len}, () => E('span')));
+  const led = E('i', {class: 'ck-led'});
+  const keys = {};
+  const pad = E('div', {class: 'ck-pad'}, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map(k => {
+    const b = E('button', {class: 'ck-k' + (k === '*' || k === '#' ? ' fn' : ''), onclick: () => press(k)},
+      E('b', {text: k}), E('small', {text: k === '*' ? 'CLR' : k === '#' ? 'ENT' : ' '}));
+    keys[k] = b; return b; }));
+  const log = E('div', {class: 'ck-log'}, Array.from({length: tries}, () => E('div', {class: 'ck-row'}, Array.from({length: len}, () => E('span')))));
+  root.append(E('div', {class: 'ck'},
+    E('div', {class: 'ck-unit'},
+      E('div', {class: 'ck-top'}, E('span', {text: 'NXT SECURE · M-40'}), led),
+      lcd, pad, E('div', {class: 'ck-grille'})),
+    E('div', {class: 'ck-side'}, E('div', {class: 'lbl', text: 'Attempt log'}), log,
+      E('div', {class: 'ck-legend'}, E('span', {class: 'hit', text: 'right slot'}), E('span', {class: 'near', text: 'wrong slot'}), E('span', {class: 'miss', text: 'not in code'})))));
+  function press(k) {
+    const b = keys[k]; b.classList.remove('down'); void b.offsetWidth; b.classList.add('down');
+    if (k === '*') cur = []; else if (k === '#') return submit(); else if (cur.length < len) cur.push(k);
+    draw();
+  }
+  function score(g) {
+    const res = Array(len).fill('miss'), left = {};
+    code.forEach((c, i) => { if (g[i] === c) res[i] = 'hit'; else left[c] = (left[c] || 0) + 1; });
+    g.forEach((c, i) => { if (res[i] !== 'hit' && left[c] > 0) { res[i] = 'near'; left[c]--; } });
+    return res;
+  }
   function submit() {
-    if (cur.length < len) return U.shake(slots);
+    if (cur.length < len) { U.shake(lcd); led.className = 'ck-led err'; api.after(300, () => led.className = 'ck-led'); return; }
+    const res = score(cur), row = log.children[used];
+    [...row.children].forEach((s, i) => { s.textContent = cur[i]; s.style.animationDelay = `${i * 70}ms`; s.className = 'flip ' + res[i]; });
     used++;
-    const m = cur.filter((c, i) => c === key[i]).length;
-    hist.querySelector('.cl-empty')?.remove();
-    hist.prepend(E('div', {class: 'cl-row' + (m === len ? ' win' : '')},
-      E('span', {class: 'cl-n', text: String(used).padStart(2, '0')}),
-      E('span', {class: 'cl-g', text: cur.join(' ')}),
-      E('span', {class: 'cl-m'}, Array.from({length: len}, (_, i) => E('i', {class: i < m ? 'on' : ''}))),
-      E('span', {class: 'cl-c', text: `${m}/${len}`})));
-    if (m === len) return api.win('Key accepted');
-    if (used >= tries) return api.fail(`Out of attempts. Key was ${key.join('')}`);
+    if (res.every(r => r === 'hit')) { led.className = 'ck-led ok'; lcd.classList.add('ok'); return api.after(450, () => api.win('Door unlocked')); }
+    led.className = 'ck-led err'; api.after(350, () => led.className = 'ck-led');
+    if (used >= tries) return api.after(450, () => api.fail(`Lockout. Code was ${code.join('')}`));
     cur = []; draw();
   }
   function draw() {
-    [...slots.children].forEach((s, i) => { s.textContent = cur[i] || ''; s.classList.toggle('on', i === cur.length); });
+    [...lcd.children].forEach((s, i) => { s.textContent = cur[i] ?? '_'; s.classList.toggle('on', i === cur.length); });
     api.status(`<span>Tries left <b>${tries - used}</b></span>`);
   }
-  api.key(e => { const k = e.key.toUpperCase();
-    if (k.length === 1 && A.includes(k)) add(k); else if (e.key === 'Backspace') del(); else if (e.key === 'Enter') submit(); });
-  api.timer(api.ti('time', 150, 100)); draw();
+  api.key(e => { if (/^[0-9]$/.test(e.key)) press(e.key); else if (e.key === 'Backspace') { cur.pop(); draw(); } else if (e.key === 'Delete' || e.key === '*') press('*'); else if (e.key === 'Enter' || e.key === '#') press('#'); });
+  api.timer(api.ti('time', 120, 90)); draw();
 }});
